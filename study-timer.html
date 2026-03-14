@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Timer - Student Toolkit</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="style.css">
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- html2canvas for screenshot functionality -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="script.js"></script>
+</head>
+<body>
+
+    <!-- Animated Ambient Background -->
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+    <div class="bg-blob blob-3"></div>
+
+    <!-- NAVIGATION BAR -->
+    <nav class="navbar glass">
+        <div class="nav-brand" onclick="window.location.href='index.html'">
+            <i class="fa-solid fa-infinity" style="color: var(--primary);"></i> MathHub
+        </div>
+        
+        <ul class="nav-links" id="navLinks">
+            <li><a href="index.html" class="nav-item">Home</a></li>
+            
+            <li class="dropdown">
+                <a class="dropdown-toggle">Math Tools <i class="fa-solid fa-chevron-down" style="font-size: 0.7em;"></i></a>
+                <div class="dropdown-menu">
+                    <a href="javascript:void(0)" onclick="window.location.href='index.html'; setTimeout(() => navigateTo('calc-graph'), 100);">
+                        <div class="dropdown-icon-box" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        Graphing Calculator
+                    </a>
+                    <a href="javascript:void(0)" onclick="window.location.href='index.html'; setTimeout(() => navigateTo('calc-sci'), 100);">
+                        <div class="dropdown-icon-box" style="background: rgba(20, 184, 166, 0.2); color: #14b8a6;">
+                            <i class="fa-solid fa-flask"></i>
+                        </div>
+                        Scientific Calculator
+                    </a>
+                    <a href="javascript:void(0)" onclick="window.location.href='index.html'; setTimeout(() => navigateTo('calc-four'), 100);">
+                        <div class="dropdown-icon-box" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6;">
+                            <i class="fa-solid fa-calculator"></i>
+                        </div>
+                        Standard Calculator
+                    </a>
+                    <a href="javascript:void(0)" onclick="window.location.href='index.html'; setTimeout(() => navigateTo('calc-matrix'), 100);">
+                        <div class="dropdown-icon-box" style="background: rgba(99, 102, 241, 0.2); color: #6366f1;">
+                            <i class="fa-solid fa-border-all"></i>
+                        </div>
+                        Matrix Calculator
+                    </a>
+                    
+                    <div style="height: 1px; width: 100%; background: rgba(100, 116, 139, 0.2); margin: 0.5rem 0;"></div>
+                    
+                    <a href="javascript:void(0)" onclick="window.location.href='index.html'; setTimeout(() => navigateTo('calc-converter'), 100);">
+                        <div class="dropdown-icon-box" style="background: rgba(139, 92, 246, 0.2); color: #8b5cf6;">
+                            <i class="fa-solid fa-ruler-combined"></i>
+                        </div>
+                        Unit Converter
+                    </a>
+                    <a href="javascript:void(0)" onclick="window.location.href='index.html'; setTimeout(() => navigateTo('calc-num-sys'), 100);">
+                        <div class="dropdown-icon-box" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;">
+                            <i class="fa-solid fa-microchip"></i>
+                        </div>
+                        Number System
+                    </a>
+                    <a href="javascript:void(0)" onclick="window.location.href='index.html'; setTimeout(() => navigateTo('calc-calculus'), 100);">
+                        <div class="dropdown-icon-box" style="background: rgba(236, 72, 153, 0.2); color: #ec4899;">
+                            <span style="font-family: 'Times New Roman', serif; font-size: 1.6rem; font-style: italic; font-weight: bold; line-height: 1;">&int;</span>
+                        </div>
+                        Calculus
+                    </a>
+                    <a href="javascript:void(0)" onclick="window.location.href='index.html'; setTimeout(() => navigateTo('calc-misc'), 100);">
+                        <div class="dropdown-icon-box" style="background: rgba(244, 63, 94, 0.2); color: #f43f5e;">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        Misc Calculators
+                    </a>
+                </div>
+            </li>
+
+            <li class="dropdown">
+                <a class="dropdown-toggle">Resources <i class="fa-solid fa-chevron-down" style="font-size: 0.7em;"></i></a>
+                <div class="dropdown-menu" style="min-width: 250px;">
+                    <a href="javascript:void(0)" onclick="window.location.href='index.html'; setTimeout(() => navigateTo('page-about'), 100);">
+                        <div class="dropdown-icon-box" style="background: rgba(100, 116, 139, 0.2); color: var(--text-muted);">
+                            <i class="fa-solid fa-circle-info"></i>
+                        </div>
+                        About Us
+                    </a>
+                    <a href="javascript:void(0)" onclick="window.location.href='index.html'; setTimeout(() => navigateTo('page-help'), 100);">
+                        <div class="dropdown-icon-box" style="background: rgba(100, 116, 139, 0.2); color: var(--text-muted);">
+                            <i class="fa-solid fa-circle-question"></i>
+                        </div>
+                        Help Center
+                    </a>
+                </div>
+            </li>
+
+            <li class="dropdown">
+                <a class="dropdown-toggle">Student Toolkit <i class="fa-solid fa-chevron-down" style="font-size: 0.7em;"></i></a>
+                <div class="dropdown-menu" style="min-width: 250px;">
+                    <a href="student-home.html">
+                        <div class="dropdown-icon-box" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">
+                            <i class="fa-solid fa-home"></i>
+                        </div>
+                        Home
+                    </a>
+                    <a href="gpa-calculator.html">
+                        <div class="dropdown-icon-box" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6;">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+                        GPA Calculator
+                    </a>
+                    <a href="study-timer.html">
+                        <div class="dropdown-icon-box" style="background: rgba(139, 92, 246, 0.2); color: #8b5cf6;">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        Study Timer
+                    </a>
+                    <a href="practice-zone.html">
+                        <div class="dropdown-icon-box" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;">
+                            <i class="fa-solid fa-brain"></i>
+                        </div>
+                        Practice Zone
+                    </a>
+                </div>
+            </li>
+        </ul>
+
+        <div class="nav-right" style="display: flex; align-items: center; gap: 15px;">
+            <div id="nav-auth-container">
+                <button class="btn btn-outline" style="padding: 0.5rem 1.2rem; font-size: 0.95rem; border-radius: 8px;" onclick="openLogin()">Login</button>
+            </div>
+            <button class="icon-btn" id="themeToggle" onclick="toggleTheme()" title="Toggle Dark Mode">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- LOGIN / SIGN UP / PROFILE MODAL -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="login-modal">
+            <button class="close-modal" onclick="document.getElementById('loginModal').classList.remove('show')"><i class="fa-solid fa-xmark"></i></button>
+            
+            <!-- Brand Icon (Hidden in profile mode) -->
+            <div id="auth-brand-icon" style="text-align: center; margin-bottom: 2rem;">
+                <div style="width: 60px; height: 60px; background: rgba(139, 92, 246, 0.15); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: inset 0 0 20px rgba(139, 92, 246, 0.2);">
+                    <i class="fa-solid fa-infinity" style="font-size: 2rem; background: linear-gradient(135deg, #3b82f6, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                </div>
+            </div>
+
+            <!-- Login Form -->
+            <div id="form-login" class="auth-form-container">
+                <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 1.5rem; text-align: center; color: var(--text-main); letter-spacing: -0.5px;">Welcome Back</h2>
+                
+                <div class="auth-input-wrapper">
+                    <label class="auth-label">EMAIL ADDRESS</label>
+                    <input type="email" id="login-email" class="auth-input" placeholder="Email">
+                </div>
+                
+                <div class="auth-input-wrapper">
+                    <label class="auth-label">PASSWORD</label>
+                    <input type="password" id="login-pass" class="auth-input" placeholder="Password">
+                </div>
+                
+                <div style="text-align: right; margin-top: -10px; margin-bottom: 15px;">
+                    <a href="#" style="color: #8b5cf6; font-size: 0.9rem; font-weight: 600; text-decoration: none;">Forgot password?</a>
+                </div>
+
+                <button class="btn-auth" onclick="handleSignIn()">Sign In</button>
+                <p style="text-align: center; color: var(--text-muted); font-size: 0.95rem;">Don't have an account? <a href="javascript:void(0)" onclick="switchAuthForm('signup')" style="color: #8b5cf6; font-weight: 700; text-decoration: none;">Sign up</a></p>
+            </div>
+
+            <!-- Sign Up Form -->
+            <div id="form-signup" class="auth-form-container" style="display: none;">
+                <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 1.5rem; text-align: center; color: var(--text-main); letter-spacing: -0.5px;">Create Account</h2>
+                
+                <div class="auth-input-wrapper">
+                    <label class="auth-label">USERNAME</label>
+                    <input type="text" id="reg-user" class="auth-input" placeholder="e.g. Ravishka">
+                </div>
+                
+                <div class="auth-input-wrapper">
+                    <label class="auth-label">EMAIL ADDRESS</label>
+                    <input type="email" id="reg-email" class="auth-input" placeholder="name@example.com">
+                </div>
+                
+                <div class="auth-input-wrapper">
+                    <label class="auth-label">CREATE PASSWORD</label>
+                    <input type="password" id="reg-pass" class="auth-input" placeholder="••••••••">
+                </div>
+
+                <button class="btn-auth" onclick="handleSignUp()">Create Account</button>
+                <p style="text-align: center; color: var(--text-muted); font-size: 0.95rem;">Already have an account? <a href="javascript:void(0)" onclick="switchAuthForm('login')" style="color: #8b5cf6; font-weight: 700; text-decoration: none;">Sign in</a></p>
+            </div>
+
+            <!-- Profile View -->
+            <div id="form-profile" class="auth-form-container" style="display: none;">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <div id="profile-avatar-large" style="width: 80px; height: 80px; background: linear-gradient(135deg, #6366f1, #a855f7); color: white; font-size: 2.5rem; font-weight: 700; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin: 0 auto 15px; box-shadow: 0 8px 20px rgba(168, 85, 247, 0.4); border: 3px solid rgba(255,255,255,0.5);">R</div>
+                    <h2 id="profile-name-display" style="font-size: 1.8rem; font-weight: 800; color: var(--text-main); margin-bottom: 5px;">Ravishka</h2>
+                    <p id="profile-email-display" style="color: var(--text-muted); font-size: 1rem;">ravishka1oshada@gmail.com</p>
+                </div>
+                
+                <div class="math-input-group" style="margin-bottom: 1.5rem; background: var(--glass-panel); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--glass-border);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span style="color: var(--text-muted); font-weight: 600;">Account Type</span>
+                        <span style="color: #a855f7; font-weight: 800;">PRO Member <i class="fa-solid fa-circle-check"></i></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-muted); font-weight: 600;">Calculations</span>
+                        <span style="color: var(--text-main); font-weight: 700;">1,284</span>
+                    </div>
+                </div>
+
+                <button class="btn-auth" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; box-shadow: none;" onclick="handleSignOut()">Sign Out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STUDY TIMER PAGE -->
+    <main class="page active" id="study-timer">
+        <div class="calc-wrapper" style="max-width: 900px;">
+            <button class="btn-back" onclick="window.location.href='student-home.html'"><i class="fa-solid fa-arrow-left"></i> Back to Student Toolkit</button>
+            <div class="calc-header">
+                <h2 class="hero-title animated-gradient-text" style="font-size: 3.5rem;">Study Timer</h2>
+                <p>Boost your productivity with focused study sessions using the Pomodoro technique.</p>
+            </div>
+            
+            <div class="glass" style="border-radius: 24px; padding: 2.5rem;">
+                <div class="timer-container">
+                    <div class="timer-display">
+                        <div class="timer-circle">
+                            <div class="timer-progress" id="timerProgress"></div>
+                            <div class="timer-text">
+                                <div id="timerMinutes">25</div>
+                                <div id="timerSeconds">:00</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="timer-controls">
+                        <button class="btn btn-primary" id="startBtn" onclick="studyTimer.start()">Start Study Session</button>
+                        <button class="btn btn-outline" id="pauseBtn" onclick="studyTimer.pause()" style="display: none;">Pause</button>
+                        <button class="btn btn-outline" id="resetBtn" onclick="studyTimer.reset()">Reset</button>
+                    </div>
+                    
+                    <div class="timer-settings">
+                        <div class="math-input-group">
+                            <label>Study Duration (minutes)</label>
+                            <input type="number" id="studyDuration" value="25" min="1" max="60" onchange="studyTimer.updateSettings()">
+                        </div>
+                        <div class="math-input-group">
+                            <label>Break Duration (minutes)</label>
+                            <input type="number" id="breakDuration" value="5" min="1" max="30" onchange="studyTimer.updateSettings()">
+                        </div>
+                        <div class="math-input-group">
+                            <label>Long Break Duration (minutes)</label>
+                            <input type="number" id="longBreakDuration" value="15" min="1" max="60" onchange="studyTimer.updateSettings()">
+                        </div>
+                        <div class="math-input-group">
+                            <label>Sessions before Long Break</label>
+                            <input type="number" id="sessionsBeforeLongBreak" value="4" min="1" max="10" onchange="studyTimer.updateSettings()">
+                        </div>
+                    </div>
+                    
+                    <div class="timer-status">
+                        <div id="currentMode">Ready to start studying!</div>
+                        <div id="sessionCount">Session: 1 / 4</div>
+                    </div>
+                    
+                    <div class="timer-stats">
+                        <div class="stat-item">
+                            <div class="stat-number" id="completedSessions">0</div>
+                            <div class="stat-label">Completed Sessions</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="totalStudyTime">0</div>
+                            <div class="stat-label">Total Study Time (min)</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="totalBreakTime">0</div>
+                            <div class="stat-label">Total Break Time (min)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <style>
+        .timer-container {
+            text-align: center;
+        }
+        
+        .timer-display {
+            margin-bottom: 2rem;
+        }
+        
+        .timer-circle {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            margin: 0 auto;
+            border-radius: 50%;
+            background: var(--glass-panel);
+            border: 3px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .timer-progress {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(var(--primary) 0deg, transparent 0deg);
+            transition: background 0.3s ease;
+        }
+        
+        .timer-text {
+            position: relative;
+            z-index: 1;
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+        }
+        
+        .timer-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .timer-settings {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .timer-status {
+            background: var(--glass-panel);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            margin-bottom: 2rem;
+        }
+        
+        .timer-stats {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+            min-width: 120px;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .timer-circle {
+                width: 200px;
+                height: 200px;
+            }
+            
+            .timer-text {
+                font-size: 2.5rem;
+            }
+            
+            .timer-settings {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <script>
+        // Study Timer App (Pomodoro)
+        const studyTimer = {
+            timeLeft: 25 * 60, // seconds
+            totalTime: 25 * 60,
+            isRunning: false,
+            isPaused: false,
+            currentMode: 'study', // 'study', 'break', 'longBreak'
+            sessionCount: 1,
+            sessionsBeforeLongBreak: 4,
+            completedSessions: 0,
+            totalStudyTime: 0,
+            totalBreakTime: 0,
+            interval: null,
+            
+            settings: {
+                study: 25,
+                break: 5,
+                longBreak: 15,
+                sessionsBeforeLongBreak: 4
+            },
+            
+            init: function() {
+                this.updateDisplay();
+                this.updateSettings();
+            },
+            
+            updateSettings: function() {
+                this.settings.study = parseInt(document.getElementById('studyDuration').value) || 25;
+                this.settings.break = parseInt(document.getElementById('breakDuration').value) || 5;
+                this.settings.longBreak = parseInt(document.getElementById('longBreakDuration').value) || 15;
+                this.settings.sessionsBeforeLongBreak = parseInt(document.getElementById('sessionsBeforeLongBreak').value) || 4;
+                
+                if (!this.isRunning) {
+                    this.reset();
+                }
+            },
+            
+            start: function() {
+                if (!this.isRunning) {
+                    this.isRunning = true;
+                    this.isPaused = false;
+                    document.getElementById('startBtn').style.display = 'none';
+                    document.getElementById('pauseBtn').style.display = 'inline-block';
+                    this.runTimer();
+                }
+            },
+            
+            pause: function() {
+                this.isRunning = false;
+                this.isPaused = true;
+                document.getElementById('startBtn').style.display = 'inline-block';
+                document.getElementById('pauseBtn').style.display = 'none';
+                document.getElementById('startBtn').textContent = 'Resume';
+                clearInterval(this.interval);
+            },
+            
+            reset: function() {
+                clearInterval(this.interval);
+                this.isRunning = false;
+                this.isPaused = false;
+                this.currentMode = 'study';
+                this.sessionCount = 1;
+                this.timeLeft = this.settings.study * 60;
+                this.totalTime = this.settings.study * 60;
+                this.updateDisplay();
+                this.updateStatus();
+                document.getElementById('startBtn').style.display = 'inline-block';
+                document.getElementById('pauseBtn').style.display = 'none';
+                document.getElementById('startBtn').textContent = 'Start Study Session';
+            },
+            
+            runTimer: function() {
+                this.interval = setInterval(() => {
+                    if (this.timeLeft > 0) {
+                        this.timeLeft--;
+                        this.updateDisplay();
+                    } else {
+                        this.completeSession();
+                    }
+                }, 1000);
+            },
+            
+            completeSession: function() {
+                clearInterval(this.interval);
+                this.isRunning = false;
+                
+                if (this.currentMode === 'study') {
+                    this.completedSessions++;
+                    this.totalStudyTime += this.settings.study;
+                    
+                    if (this.sessionCount % this.settings.sessionsBeforeLongBreak === 0) {
+                        this.currentMode = 'longBreak';
+                        this.timeLeft = this.settings.longBreak * 60;
+                        this.totalTime = this.settings.longBreak * 60;
+                    } else {
+                        this.currentMode = 'break';
+                        this.timeLeft = this.settings.break * 60;
+                        this.totalTime = this.settings.break * 60;
+                    }
+                    
+                    this.playNotification('Time for a break!');
+                } else {
+                    this.totalBreakTime += (this.currentMode === 'break' ? this.settings.break : this.settings.longBreak);
+                    this.currentMode = 'study';
+                    this.sessionCount++;
+                    this.timeLeft = this.settings.study * 60;
+                    this.totalTime = this.settings.study * 60;
+                    
+                    this.playNotification('Break time is over. Back to studying!');
+                }
+                
+                this.updateDisplay();
+                this.updateStatus();
+                this.updateStats();
+                
+                // Auto-start next session after 1 second
+                setTimeout(() => {
+                    if (!this.isPaused) {
+                        this.start();
+                    }
+                }, 1000);
+            },
+            
+            updateDisplay: function() {
+                const minutes = Math.floor(this.timeLeft / 60);
+                const seconds = this.timeLeft % 60;
+                
+                document.getElementById('timerMinutes').textContent = minutes.toString().padStart(2, '0');
+                document.getElementById('timerSeconds').textContent = ':' + seconds.toString().padStart(2, '0');
+                
+                // Update progress circle
+                const progress = ((this.totalTime - this.timeLeft) / this.totalTime) * 360;
+                document.getElementById('timerProgress').style.background = `conic-gradient(var(--primary) ${progress}deg, transparent ${progress}deg)`;
+            },
+            
+            updateStatus: function() {
+                const modeText = {
+                    'study': 'Study Session',
+                    'break': 'Short Break',
+                    'longBreak': 'Long Break'
+                };
+                
+                document.getElementById('currentMode').textContent = modeText[this.currentMode];
+                document.getElementById('sessionCount').textContent = `Session: ${this.sessionCount} / ${this.settings.sessionsBeforeLongBreak}`;
+            },
+            
+            updateStats: function() {
+                document.getElementById('completedSessions').textContent = this.completedSessions;
+                document.getElementById('totalStudyTime').textContent = this.totalStudyTime;
+                document.getElementById('totalBreakTime').textContent = this.totalBreakTime;
+            },
+            
+            playNotification: function(message) {
+                // Visual notification
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification('Study Timer', { body: message });
+                }
+                
+                // Audio notification (optional)
+                // const audio = new Audio('notification.mp3');
+                // audio.play();
+            }
+        };
+
+        // Request notification permission
+        if ('Notification' in window) {
+            Notification.requestPermission();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            studyTimer.init();
+            
+            // Initialize theme
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon();
+        });
+    </script>
+
+</body>
+</html>
