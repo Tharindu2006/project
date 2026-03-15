@@ -345,6 +345,7 @@ let currentUser = null;
             });
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            closeMobileMenu();
             
             // Initialization triggers for advanced tools
             if(pageId === 'calc-graph') { setTimeout(() => { try { graphApp.init(); } catch(e) { console.error('Graph init error:', e); } }, 100); } 
@@ -358,6 +359,26 @@ let currentUser = null;
         function toggleMobileNav() {
             const navLinks = document.getElementById('navLinks');
             if (navLinks) navLinks.classList.toggle('show');
+        }
+
+        function toggleMobileMenu() {
+            const navLinks = document.getElementById('navLinks');
+            const icon = document.getElementById('mobileMenuIcon');
+            if (navLinks) {
+                navLinks.classList.toggle('mobile-open');
+                if (icon) {
+                    icon.className = navLinks.classList.contains('mobile-open') 
+                        ? 'fa-solid fa-xmark' 
+                        : 'fa-solid fa-bars';
+                }
+            }
+        }
+
+        function closeMobileMenu() {
+            const navLinks = document.getElementById('navLinks');
+            const icon = document.getElementById('mobileMenuIcon');
+            if (navLinks) navLinks.classList.remove('mobile-open');
+            if (icon) icon.className = 'fa-solid fa-bars';
         }
 
         // --- THEME / DARK MODE ---
@@ -441,7 +462,7 @@ let currentUser = null;
 
         // --- 2. SCIENTIFIC CALCULATOR ---
         const sciApp = {
-            expr: '0', ans: 0, angleMode: 'rad',
+            expr: '0', ans: 0, angleMode: 'rad', lastTrigExpr: null, cursorPos: 1,
             init() { this.updateUI(); },
             switchTab(tabId) {
                 document.getElementById('vk-main').style.display = tabId === 'main' ? 'grid' : 'none';
@@ -454,29 +475,78 @@ let currentUser = null;
                 this.angleMode = mode;
                 document.getElementById('sci-rad').classList.toggle('active', mode === 'rad');
                 document.getElementById('sci-deg').classList.toggle('active', mode === 'deg');
+                // Re-evaluate last trig expression in the new angle mode
+                if (this.lastTrigExpr) {
+                    try {
+                        let toEvaluate = this.lastTrigExpr.replace(/ans/g, this.ans.toString());
+                        if (this.angleMode === 'deg') {
+                            toEvaluate = toEvaluate.replace(/\b(sin|cos|tan)\(/g, '$1((pi/180)*');
+                        }
+                        let result = math.evaluate(toEvaluate);
+                        result = math.format(result, {precision: 10});
+                        document.getElementById('sci-history').innerText = this.lastTrigExpr + ' =';
+                        this.expr = result.toString(); this.cursorPos = this.expr.length; this.ans = result; this.updateUI();
+                    } catch(e) {}
+                }
             },
+            moveLeft() { if (this.cursorPos > 0) { this.cursorPos--; this.updateUI(); } },
+            moveRight() { if (this.cursorPos < this.expr.length) { this.cursorPos++; this.updateUI(); } },
             updateUI() {
                 let display = this.expr.replace(/\*/g, '×').replace(/\//g, '÷').replace(/pi/g, 'π');
-                document.getElementById('sci-input').innerHTML = display + '<span style="border-right: 2px solid var(--primary); animation: blink 1s step-end infinite;"></span>';
+                // Map cursor position from expr to display string
+                let displayPos = this.expr.substring(0, this.cursorPos).replace(/\*/g, '×').replace(/\//g, '÷').replace(/pi/g, 'π').length;
+                let before = display.substring(0, displayPos);
+                let after = display.substring(displayPos);
+                document.getElementById('sci-input').innerHTML = before + '<span style="border-right: 2px solid var(--primary); animation: blink 1s step-end infinite;"></span>' + after;
             },
-            clearAll() { this.expr = '0'; document.getElementById('sci-history').innerText = ''; this.updateUI(); },
-            backspace() { this.expr = this.expr.slice(0, -1); if(this.expr === '') this.expr = '0'; this.updateUI(); },
+            clearAll() { this.expr = '0'; this.cursorPos = 1; this.lastTrigExpr = null; document.getElementById('sci-history').innerText = ''; this.updateUI(); },
+            backspace() {
+                if (this.cursorPos > 0) {
+                    this.expr = this.expr.slice(0, this.cursorPos - 1) + this.expr.slice(this.cursorPos);
+                    this.cursorPos--;
+                    if (this.expr === '') { this.expr = '0'; this.cursorPos = 1; }
+                }
+                this.updateUI();
+            },
             type(val) {
-                if(this.expr === '0' && val !== '.') this.expr = val; else this.expr += val;
+                if (this.expr === '0' && val !== '.') {
+                    this.expr = val;
+                    this.cursorPos = val.length;
+                } else {
+                    this.expr = this.expr.slice(0, this.cursorPos) + val + this.expr.slice(this.cursorPos);
+                    this.cursorPos += val.length;
+                }
                 this.updateUI();
             },
             compute() {
                 try {
+                    // Auto-close missing parentheses
+                    let open = (this.expr.match(/\(/g) || []).length;
+                    let close = (this.expr.match(/\)/g) || []).length;
+                    if (open > close) this.expr += ')'.repeat(open - close);
+
+                    // Remember trig expressions for live RAD/DEG switching
+                    if (/\b(sin|cos|tan)\(/.test(this.expr)) {
+                        this.lastTrigExpr = this.expr;
+                    } else {
+                        this.lastTrigExpr = null;
+                    }
+
                     let toEvaluate = this.expr.replace(/ans/g, this.ans.toString());
+
+                    // Convert trig arguments from degrees to radians when in DEG mode
+                    if (this.angleMode === 'deg') {
+                        toEvaluate = toEvaluate.replace(/\b(sin|cos|tan)\(/g, '$1((pi/180)*');
+                    }
+
                     let result = math.evaluate(toEvaluate);
-                    if (this.angleMode === 'deg' && this.expr.includes('sin(')) result = math.evaluate(toEvaluate.replace(/sin\(/g, 'sin((pi/180)*'));
                     result = math.format(result, {precision: 10});
                     document.getElementById('sci-history').innerText = this.expr + ' =';
                     
                     // Save to history
                     calcHistory.saveCalculation('Scientific Calculator', this.expr, result);
                     
-                    this.expr = result.toString(); this.ans = result; this.updateUI();
+                    this.expr = result.toString(); this.cursorPos = this.expr.length; this.ans = result; this.updateUI();
                 } catch (e) {
                     document.getElementById('sci-input').innerText = 'Error'; setTimeout(() => this.clearAll(), 1500);
                 }
@@ -1582,6 +1652,134 @@ let currentUser = null;
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize calculation history
             calcHistory.init();
-            
+
             if(document.getElementById('calc-sci').classList.contains('active')) sciApp.init();
+
+            // Keyboard support for Scientific Calculator
+            document.addEventListener('keydown', function(e) {
+                const sciSection = document.getElementById('calc-sci');
+                if (!sciSection || !sciSection.classList.contains('active')) return;
+
+                if (e.key === 'ArrowLeft') { e.preventDefault(); sciApp.moveLeft(); }
+                else if (e.key === 'ArrowRight') { e.preventDefault(); sciApp.moveRight(); }
+                else if (e.key === 'Enter') { e.preventDefault(); sciApp.compute(); }
+                else if (e.key === 'Backspace') { e.preventDefault(); sciApp.backspace(); }
+                else if (e.key === 'Escape') { e.preventDefault(); sciApp.clearAll(); }
+                else if (/^[0-9+\-*/.(),]$/.test(e.key)) { e.preventDefault(); sciApp.type(e.key); }
+            });
+
+            // Keyboard support for Standard Calculator
+            document.addEventListener('keydown', function(e) {
+                const fourSection = document.getElementById('calc-four');
+                if (!fourSection || !fourSection.classList.contains('active')) return;
+
+                if (/^[0-9.]$/.test(e.key)) { e.preventDefault(); fourCalc.appendNum(e.key); }
+                else if (e.key === '+') { e.preventDefault(); fourCalc.appendOp('+'); }
+                else if (e.key === '-') { e.preventDefault(); fourCalc.appendOp('-'); }
+                else if (e.key === '*') { e.preventDefault(); fourCalc.appendOp('*'); }
+                else if (e.key === '/') { e.preventDefault(); fourCalc.appendOp('/'); }
+                else if (e.key === '%') { e.preventDefault(); fourCalc.appendOp('%'); }
+                else if (e.key === 'Enter' || e.key === '=') { e.preventDefault(); fourCalc.compute(); }
+                else if (e.key === 'Backspace') { e.preventDefault(); fourCalc.current = fourCalc.current.slice(0, -1); if (!fourCalc.current) fourCalc.current = '0'; fourCalc.updateUI(); }
+                else if (e.key === 'Escape' || e.key === 'Delete') { e.preventDefault(); fourCalc.clear(); }
+            });
+
+            // Load saved reviews on page load
+            renderReviews();
+
+            // Mobile dropdown toggle (touch devices can't hover)
+            document.querySelectorAll('.dropdown > .dropdown-toggle').forEach(toggle => {
+                toggle.addEventListener('click', function(e) {
+                    if (window.innerWidth <= 768) {
+                        e.preventDefault();
+                        const parent = this.closest('.dropdown');
+                        // Close other open dropdowns
+                        document.querySelectorAll('.dropdown.open').forEach(d => {
+                            if (d !== parent) d.classList.remove('open');
+                        });
+                        parent.classList.toggle('open');
+                    }
+                });
+            });
+
+            // Close mobile menu when clicking outside
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth <= 768) {
+                    if (!e.target.closest('.navbar')) {
+                        closeMobileMenu();
+                        document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+                    }
+                }
+            });
         });
+
+        // --- COMMUNITY REVIEWS ---
+        function getReviews() {
+            try { return JSON.parse(localStorage.getItem('mathhub_reviews')) || []; }
+            catch(e) { return []; }
+        }
+
+        function saveReviews(reviews) {
+            localStorage.setItem('mathhub_reviews', JSON.stringify(reviews));
+        }
+
+        function submitReview() {
+            const text = document.getElementById('review-text').value.trim();
+            const name = document.getElementById('review-name').value.trim() || 'Anonymous';
+            const rating = parseInt(document.getElementById('review-rating').value);
+            const errorDiv = document.getElementById('review-error');
+
+            if (!text) {
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = 'Please write a review before posting.';
+                return;
+            }
+
+            errorDiv.style.display = 'none';
+
+            const review = {
+                text: text,
+                name: name,
+                rating: rating,
+                date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+            };
+
+            const reviews = getReviews();
+            reviews.unshift(review);
+            saveReviews(reviews);
+
+            // Clear form
+            document.getElementById('review-text').value = '';
+            document.getElementById('review-name').value = '';
+            document.getElementById('review-rating').value = '5';
+
+            renderReviews();
+        }
+
+        function renderReviews() {
+            const container = document.getElementById('reviews-output');
+            if (!container) return;
+            const reviews = getReviews();
+
+            if (reviews.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 2rem;">No reviews yet. Be the first to share your feedback!</p>';
+                return;
+            }
+
+            container.innerHTML = reviews.map(r => {
+                const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+                const initial = r.name.charAt(0).toUpperCase();
+                return `
+                <div class="glass" style="padding: 1.5rem; border-radius: 16px; border: 1px solid var(--glass-border);">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 0.8rem;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a855f7); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; flex-shrink: 0;">${initial}</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700; color: var(--text-main); font-size: 1rem;">${r.name}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">${r.date}</div>
+                        </div>
+                        <div style="color: #f59e0b; font-size: 1rem; letter-spacing: 2px;">${stars}</div>
+                    </div>
+                    <p style="color: var(--text-muted); line-height: 1.6; margin: 0; font-size: 0.95rem;">${r.text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
+                </div>`;
+            }).join('');
+        }

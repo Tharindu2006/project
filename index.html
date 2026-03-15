@@ -2,8 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Math Calculator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="description" content="MathHub - Your ultimate math toolkit featuring scientific, graphing, matrix calculators, unit converter, calculus tools, and more.">
+    <meta name="keywords" content="calculator, math, scientific calculator, graphing, matrix, unit converter, calculus, GPA calculator">
+    <meta name="author" content="MathHub Team">
+    <meta name="theme-color" content="#8b5cf6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta property="og:title" content="MathHub - Ultimate Math Calculator">
+    <meta property="og:description" content="All-in-one math toolkit with scientific, graphing, matrix calculators and more.">
+    <meta property="og:type" content="website">
+    <title>MathHub - Ultimate Math Calculator</title>
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -149,6 +158,12 @@
                         </div>
                         Practice Zone
                     </a>
+                    <a href="aimodel.html">
+                        <div class="dropdown-icon-box" style="background: rgba(236, 72, 153, 0.2); color: #ec4899;">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+                        AI Results Predictor
+                    </a>
                 </div>
             </li>
 
@@ -156,6 +171,9 @@
         </ul>
 
         <div class="nav-right" style="display: flex; align-items: center; gap: 15px;">
+            <button class="icon-btn mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileMenu()" title="Menu" aria-label="Toggle navigation menu">
+                <i class="fa-solid fa-bars" id="mobileMenuIcon"></i>
+            </button>
             <button class="icon-btn" id="history-toggle-btn" onclick="calcHistory.togglePanel()" title="Show History" style="position: relative;">
                 <i class="fa-solid fa-history"></i>
                 <span id="history-count" style="position: absolute; top: -8px; right: -8px; background: var(--primary); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; font-weight: 600;">0</span>
@@ -477,8 +495,8 @@
                         <button class="vk-btn num" onclick="sciApp.type('5')">5</button>
                         <button class="vk-btn num" onclick="sciApp.type('6')">6</button>
                         <button class="vk-btn" onclick="sciApp.type('*')">×</button>
-                        <button class="vk-btn action"><i class="fa-solid fa-arrow-left"></i></button>
-                        <button class="vk-btn action"><i class="fa-solid fa-arrow-right"></i></button>
+                        <button class="vk-btn action" onclick="sciApp.moveLeft()"><i class="fa-solid fa-arrow-left"></i></button>
+                        <button class="vk-btn action" onclick="sciApp.moveRight()"><i class="fa-solid fa-arrow-right"></i></button>
 
                         <button class="vk-btn" onclick="sciApp.type('sin(')">sin</button>
                         <button class="vk-btn" onclick="sciApp.type('cos(')">cos</button>
@@ -1016,49 +1034,405 @@
             <button class="btn-back" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-left"></i> Back to Home</button>
             <div class="calc-header">
                 <h2 class="hero-title animated-gradient-text" style="font-size: 3.5rem;">Help Center</h2>
-                <p>Learn how to use each tool within the MathHub platform.</p>
+                <p>Learn how to use all our calculators with detailed guides and examples</p>
             </div>
             
-            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                
-                <div class="glass" style="border-radius: 20px; padding: 2rem;">
-                    <h3 style="color: #22c55e; font-size: 1.5rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-chart-line"></i> Graphing Calculator</h3>
-                    <p style="color: var(--text-muted); line-height: 1.6;">Click the "+ Add" button to create a new equation field. Type functions using standard notation like <code>sin(x)</code> or <code>x^2 + 5</code>. The interactive Plotly canvas will automatically draw your curves. You can click and drag the canvas to pan, and use your mouse wheel or the on-screen buttons to seamlessly zoom in and out.</p>
-                </div>
-                
-                <div class="glass" style="border-radius: 20px; padding: 2rem;">
-                    <h3 style="color: #0d9488; font-size: 1.5rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-flask"></i> Scientific Calculator</h3>
-                    <p style="color: var(--text-muted); line-height: 1.6;">Use the intuitive multi-tab keypad (Main, Func, ABC) to input complex mathematical formulas. You can evaluate advanced trigonometric, statistical, and algebraic expressions natively. Switch between Radians (RAD) and Degrees (DEG) using the toggle at the top right of the keypad.</p>
-                </div>
-                
-                <div class="glass" style="border-radius: 20px; padding: 2rem;">
-                    <h3 style="color: #8b5cf6; font-size: 1.5rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-border-all"></i> Matrix Calculator</h3>
-                    <p style="color: var(--text-muted); line-height: 1.6;">Click "New Matrix" to spawn a matrix editor. Adjust the rows and columns using the control panel, then type your numbers into the grid. Once defined, you can use the left-hand evaluation panel to perform operations like Matrix Multiplication (<code>A*B</code>), Transpositions (<code>Aᵀ</code>), or calculating Determinants (<code>det(A)</code>).</p>
+            <div style="display: flex; flex-direction: column; gap: 2rem;">
+
+                <!-- ===== STANDARD CALCULATOR ===== -->
+                <div class="glass" style="border-radius: 20px; padding: 2.5rem;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 1.5rem;">
+                        <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #3b82f6, #60a5fa); border-radius: 16px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-calculator" style="font-size: 1.5rem; color: white;"></i></div>
+                        <div><h3 style="margin: 0; font-size: 1.6rem; color: var(--text-main);">Standard Calculator</h3><p style="margin: 0; color: var(--text-muted); font-size: 0.95rem;">Basic arithmetic operations made simple</p></div>
+                    </div>
+                    <div style="border-left: 3px solid #3b82f6; padding-left: 1.5rem; margin-bottom: 1.5rem;">
+                        <h4 style="color: var(--text-main); margin-bottom: 0.8rem;">What You Can Do:</h4>
+                        <p style="color: var(--text-muted); line-height: 1.8; margin: 0;">✓ Addition, Subtraction, Multiplication, and Division<br>✓ Percentage calculations<br>✓ Toggle between positive and negative numbers (±)<br>✓ Clear all entries and start fresh</p>
+                    </div>
+                    <h4 style="color: var(--text-main); margin-bottom: 0.8rem;">Example Usage:</h4>
+                    <pre style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 14px; padding: 1.2rem; color: var(--text-muted); font-size: 0.9rem; line-height: 1.7; overflow-x: auto;">Calculate: 450 + 325 − 100
+Step 1: Click 4 → 5 → 0
+Step 2: Click +
+Step 3: Click 3 → 2 → 5
+Step 4: Click −
+Step 5: Click 1 → 0 → 0
+Step 6: Click = (Result: 675)
+
+Percentage Example: 20% of 500
+Step 1: Click 5 → 0 → 0
+Step 2: Click ×
+Step 3: Click 2 → 0
+Step 4: Click %
+Step 5: Click = (Result: 100)</pre>
+                    <div style="margin-top: 1rem; padding: 1rem; background: rgba(59,130,246,0.08); border-radius: 12px; border: 1px solid rgba(59,130,246,0.15);">
+                        <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">⌨️ <strong>Keyboard Shortcuts:</strong> 0-9 (numbers), +, -, *, / (operators), Enter or = (calculate), Backspace (delete), Escape (clear all)</p>
+                    </div>
                 </div>
 
-                <div class="glass" style="border-radius: 20px; padding: 2rem;">
-                    <h3 style="color: #10b981; font-size: 1.5rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-ruler-combined"></i> Unit Converter</h3>
-                    <p style="color: var(--text-muted); line-height: 1.6;">Select a measurement category from the top tabs (Length, Temperature, Area, Volume, etc.). Choose your base unit in the left column and your target unit in the right column. Type a number into either input box, and the conversion will calculate instantly in both directions.</p>
+                <!-- ===== SCIENTIFIC CALCULATOR ===== -->
+                <div class="glass" style="border-radius: 20px; padding: 2.5rem;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 1.5rem;">
+                        <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #0d9488, #14b8a6); border-radius: 16px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-flask" style="font-size: 1.5rem; color: white;"></i></div>
+                        <div><h3 style="margin: 0; font-size: 1.6rem; color: var(--text-main);">Scientific Calculator</h3><p style="margin: 0; color: var(--text-muted); font-size: 0.95rem;">Complete Function Guide &amp; Examples</p></div>
+                    </div>
+
+                    <!-- RAD vs DEG -->
+                    <div style="border-left: 3px solid #0d9488; padding-left: 1.5rem; margin-bottom: 1.5rem; background: var(--glass-bg); border-radius: 0 14px 14px 0; padding: 1.2rem 1.5rem;">
+                        <h4 style="color: var(--text-main); margin-bottom: 0.5rem;">⚙️ RAD vs DEG Mode</h4>
+                        <p style="color: var(--text-muted); line-height: 1.8; margin: 0;"><strong>DEG:</strong> Degrees (Use this for: sin(45°), cos(90°), etc.)<br><strong>RAD:</strong> Radians (Use this for: sin(π/4), cos(0), etc.)</p>
+                        <p style="color: #f97316; font-weight: 600; margin: 0.5rem 0 0;">✦ Toggle with R key or click buttons. Default: DEG</p>
+                    </div>
+                    
+                    <!-- Trig Functions Table -->
+                    <h4 style="color: #ef4444; margin-bottom: 0.8rem;">📊 Trigonometric Functions</h4>
+                    <div style="overflow-x: auto; margin-bottom: 1.5rem;">
+                        <table style="width: 100%; border-collapse: collapse; border-radius: 12px; overflow: hidden;">
+                            <thead><tr style="background: rgba(13,148,136,0.12);">
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">Function</th>
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">Button</th>
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">How to Use</th>
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">Example</th>
+                            </tr></thead>
+                            <tbody style="color: var(--text-muted);">
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;"><strong>Sine</strong></td><td style="padding: 0.7rem 1rem;">sin</td><td style="padding: 0.7rem 1rem;">Type angle, press Enter</td><td style="padding: 0.7rem 1rem;">sin(90) in DEG = 1</td></tr>
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;"><strong>Cosine</strong></td><td style="padding: 0.7rem 1rem;">cos</td><td style="padding: 0.7rem 1rem;">Type angle, press Enter</td><td style="padding: 0.7rem 1rem;">cos(0) = 1</td></tr>
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;"><strong>Tangent</strong></td><td style="padding: 0.7rem 1rem;">tan</td><td style="padding: 0.7rem 1rem;">Type angle, press Enter</td><td style="padding: 0.7rem 1rem;">tan(45) in DEG = 1</td></tr>
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;"><strong>Inverse Sine</strong></td><td style="padding: 0.7rem 1rem;">sin⁻¹</td><td style="padding: 0.7rem 1rem;">Value -1 to 1</td><td style="padding: 0.7rem 1rem;">sin⁻¹(0.5) = 30° (DEG)</td></tr>
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;"><strong>Inverse Cosine</strong></td><td style="padding: 0.7rem 1rem;">cos⁻¹</td><td style="padding: 0.7rem 1rem;">Value -1 to 1</td><td style="padding: 0.7rem 1rem;">cos⁻¹(0.5) = 60° (DEG)</td></tr>
+                                <tr><td style="padding: 0.7rem 1rem;"><strong>Inverse Tangent</strong></td><td style="padding: 0.7rem 1rem;">tan⁻¹</td><td style="padding: 0.7rem 1rem;">Any real number</td><td style="padding: 0.7rem 1rem;">tan⁻¹(1) = 45° (DEG)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p style="color: var(--text-muted); font-style: italic; margin-bottom: 1.5rem; font-size: 0.9rem;">Tip: Toggle RAD/DEG at top or press R key</p>
+                    
+                    <!-- Exponential & Log Table -->
+                    <h4 style="color: #f59e0b; margin-bottom: 0.8rem;">⚡ Exponential &amp; Logarithmic</h4>
+                    <div style="overflow-x: auto; margin-bottom: 1.5rem;">
+                        <table style="width: 100%; border-collapse: collapse; border-radius: 12px; overflow: hidden;">
+                            <thead><tr style="background: rgba(245,158,11,0.12);">
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">Function</th>
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">Button</th>
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">How to Use</th>
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">Example</th>
+                            </tr></thead>
+                            <tbody style="color: var(--text-muted);">
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;"><strong>e^x</strong></td><td style="padding: 0.7rem 1rem;">e^x</td><td style="padding: 0.7rem 1rem;">Enter exponent</td><td style="padding: 0.7rem 1rem;">e^x(2) = 7.389</td></tr>
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;"><strong>Natural Log</strong></td><td style="padding: 0.7rem 1rem;">ln</td><td style="padding: 0.7rem 1rem;">Positive numbers only</td><td style="padding: 0.7rem 1rem;">ln(10) = 2.303</td></tr>
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;"><strong>Log Base 10</strong></td><td style="padding: 0.7rem 1rem;">log</td><td style="padding: 0.7rem 1rem;">Positive numbers only</td><td style="padding: 0.7rem 1rem;">log(100) = 2</td></tr>
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;"><strong>Constant e</strong></td><td style="padding: 0.7rem 1rem;">e</td><td style="padding: 0.7rem 1rem;">Just the value</td><td style="padding: 0.7rem 1rem;">e = 2.718...</td></tr>
+                                <tr><td style="padding: 0.7rem 1rem;"><strong>Constant π</strong></td><td style="padding: 0.7rem 1rem;">π</td><td style="padding: 0.7rem 1rem;">Just the value</td><td style="padding: 0.7rem 1rem;">π = 3.14159...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Radicals Table -->
+                    <h4 style="color: #22c55e; margin-bottom: 0.8rem;">√ Radicals (Roots)</h4>
+                    <div style="overflow-x: auto; margin-bottom: 1rem;">
+                        <table style="width: 100%; border-collapse: collapse; border-radius: 12px; overflow: hidden;">
+                            <thead><tr style="background: rgba(34,197,94,0.12);">
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">Function</th>
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">Button</th>
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">How to Use</th>
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">Example</th>
+                            </tr></thead>
+                            <tbody style="color: var(--text-muted);">
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;"><strong>Square Root</strong></td><td style="padding: 0.7rem 1rem;">√</td><td style="padding: 0.7rem 1rem;">Click √, type number, press Enter</td><td style="padding: 0.7rem 1rem;">sqrt(16) = 4</td></tr>
+                                <tr><td style="padding: 0.7rem 1rem;"><strong>Nth Root</strong></td><td style="padding: 0.7rem 1rem;">ⁿ√</td><td style="padding: 0.7rem 1rem;">Click ⁿ√, type number, comma, index</td><td style="padding: 0.7rem 1rem;">nthRoot(27,3) = 3</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p style="color: var(--text-muted); font-style: italic; font-size: 0.9rem; margin-bottom: 1.5rem;">Usage Steps:<br><em>Square Root: Click √ → Type 16 → Press Enter = 4</em><br><em>Nth Root: Click ⁿ√ → Type 27 → Type , → Type 3 → Press Enter = 3</em></p>
+
+                    <!-- Statistical Functions Table -->
+                    <h4 style="color: #8b5cf6; margin-bottom: 0.8rem;">📈 Statistical Functions</h4>
+                    <div style="overflow-x: auto; margin-bottom: 1.5rem;">
+                        <table style="width: 100%; border-collapse: collapse; border-radius: 12px; overflow: hidden;">
+                            <thead><tr style="background: rgba(139,92,246,0.12);">
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">Function</th>
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">Button</th>
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">How to Use</th>
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">Example</th>
+                            </tr></thead>
+                            <tbody style="color: var(--text-muted);">
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;"><strong>Permutations</strong></td><td style="padding: 0.7rem 1rem;">nPr</td><td style="padding: 0.7rem 1rem;">Two numbers</td><td style="padding: 0.7rem 1rem;">permutations(5,3) = 60</td></tr>
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;"><strong>Combinations</strong></td><td style="padding: 0.7rem 1rem;">nCr</td><td style="padding: 0.7rem 1rem;">Two numbers</td><td style="padding: 0.7rem 1rem;">combinations(5,3) = 10</td></tr>
+                                <tr><td style="padding: 0.7rem 1rem;"><strong>Factorial</strong></td><td style="padding: 0.7rem 1rem;">!</td><td style="padding: 0.7rem 1rem;">Single number</td><td style="padding: 0.7rem 1rem;">5! = 120</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Usage: permutations(5,3) = 60 | combinations(5,3) = 10 | 5! = 5×4×3×2×1 = 120</p>
+
+                    <!-- Utility Functions -->
+                    <h4 style="color: #ec4899; margin-bottom: 0.8rem;">✨ Utility Functions</h4>
+                    <div style="overflow-x: auto; margin-bottom: 1.5rem;">
+                        <table style="width: 100%; border-collapse: collapse; border-radius: 12px; overflow: hidden;">
+                            <thead><tr style="background: rgba(236,72,153,0.12);">
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">Function</th>
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">Button</th>
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">How to Use</th>
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">Example</th>
+                            </tr></thead>
+                            <tbody style="color: var(--text-muted);">
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;"><strong>Absolute Value</strong></td><td style="padding: 0.7rem 1rem;">abs</td><td style="padding: 0.7rem 1rem;">Any number</td><td style="padding: 0.7rem 1rem;">abs(-5) = 5</td></tr>
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;"><strong>Round</strong></td><td style="padding: 0.7rem 1rem;">round</td><td style="padding: 0.7rem 1rem;">Any number</td><td style="padding: 0.7rem 1rem;">round(3.7) = 4</td></tr>
+                                <tr><td style="padding: 0.7rem 1rem;"><strong>Power</strong></td><td style="padding: 0.7rem 1rem;">a^b</td><td style="padding: 0.7rem 1rem;">Base and exponent</td><td style="padding: 0.7rem 1rem;">2^3 = 8</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Keyboard Shortcuts -->
+                    <h4 style="color: #6366f1; margin-bottom: 0.8rem;">⌨️ Keyboard Shortcuts</h4>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; border-radius: 12px; overflow: hidden;">
+                            <thead><tr style="background: rgba(99,102,241,0.12);">
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">Key</th>
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">Action</th>
+                            </tr></thead>
+                            <tbody style="color: var(--text-muted);">
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;">0-9</td><td style="padding: 0.7rem 1rem;">Numbers</td></tr>
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;">+, -, *, /</td><td style="padding: 0.7rem 1rem;">Basic operations</td></tr>
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;">^</td><td style="padding: 0.7rem 1rem;">Power</td></tr>
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;">( )</td><td style="padding: 0.7rem 1rem;">Parentheses</td></tr>
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;">Enter or =</td><td style="padding: 0.7rem 1rem;">Calculate</td></tr>
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;">Backspace</td><td style="padding: 0.7rem 1rem;">Delete last digit</td></tr>
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;">Escape</td><td style="padding: 0.7rem 1rem;">Clear all</td></tr>
+                                <tr><td style="padding: 0.7rem 1rem;">← →</td><td style="padding: 0.7rem 1rem;">Move cursor left/right</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
-                <div class="glass" style="border-radius: 20px; padding: 2rem;">
-                    <h3 style="color: #f59e0b; font-size: 1.5rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-microchip"></i> Number System</h3>
-                    <p style="color: var(--text-muted); line-height: 1.6;">Select your preferred bit-length from the top dropdown (8-bit up to 64-bit). You can toggle individual bits visually by clicking the 0s and 1s in the interactive table, or you can type directly into the Decimal, Binary, Hexadecimal, or Octal input fields to see everything update synchronously.</p>
+                <!-- ===== GRAPHING CALCULATOR ===== -->
+                <div class="glass" style="border-radius: 20px; padding: 2.5rem;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 1.5rem;">
+                        <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #22c55e, #4ade80); border-radius: 16px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-chart-line" style="font-size: 1.5rem; color: white;"></i></div>
+                        <div><h3 style="margin: 0; font-size: 1.6rem; color: var(--text-main);">Graphing Calculator</h3><p style="margin: 0; color: var(--text-muted); font-size: 0.95rem;">Visualize mathematical functions and equations</p></div>
+                    </div>
+                    <div style="border-left: 3px solid #22c55e; padding-left: 1.5rem; margin-bottom: 1.5rem;">
+                        <h4 style="color: var(--text-main); margin-bottom: 0.8rem;">How to Use:</h4>
+                        <p style="color: var(--text-muted); line-height: 1.8; margin: 0;">✓ Enter your function using x as the variable<br>✓ Adjust X-Range and Y-Range to focus on areas of interest<br>✓ Click "Plot" to visualize the function<br>✓ Add multiple functions to compare them<br>✓ Use zoom and pan controls to explore the graph</p>
+                    </div>
+                    <h4 style="color: var(--text-main); margin-bottom: 0.8rem;">Example: Plot a Parabola</h4>
+                    <pre style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 14px; padding: 1.2rem; color: var(--text-muted); font-size: 0.9rem; line-height: 1.7; overflow-x: auto;">Function: x^2 − 4x + 3
+X-Range: -2 to 6
+Y-Range: -2 to 5
+Step 1: Enter equation
+Step 2: Adjust ranges (optional)
+Step 3: Click Plot
+Step 4: View the parabola with vertex at (2, −1)
+
+Try adding another function: 2x to see intersection points!</pre>
                 </div>
 
-                <div class="glass" style="border-radius: 20px; padding: 2rem;">
-                    <h3 style="color: #6366f1; font-size: 1.5rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 10px;"><span style="font-family: 'Times New Roman', serif; font-style: italic; font-weight: bold;">&int;</span> Calculus</h3>
-                    <p style="color: var(--text-muted); line-height: 1.6;">Toggle between Differentiation and Integration. <strong>For Differentiation:</strong> Enter a function and click "Generate Graph". The engine will output simplified latex for f'(x) and f''(x), plot all three curves, and automatically mark detected Inflection Points, Local Max/Mins, and Roots on the canvas. <strong>For Integration:</strong> Evaluate indefinite or definite integrals with precise bound inputs.</p>
-                </div>
-                
-                <div class="glass" style="border-radius: 20px; padding: 2rem;">
-                    <h3 style="color: #f43f5e; font-size: 1.5rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-layer-group"></i> Misc Calculators</h3>
-                    <p style="color: var(--text-muted); line-height: 1.6;">Access a suite of everyday utility calculators. Evaluate your <strong>BMI</strong>, forecast <strong>Compound Interest</strong> over time, estimate your monthly <strong>Mortgage</strong> payments, or calculate a cumulative <strong>GPA</strong>. Every miscellaneous calculator dynamically displays the exact mathematical equation used to reach the final answer.</p>
+                <!-- ===== MATRIX CALCULATOR ===== -->
+                <div class="glass" style="border-radius: 20px; padding: 2.5rem;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 1.5rem;">
+                        <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #8b5cf6, #a78bfa); border-radius: 16px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-border-all" style="font-size: 1.5rem; color: white;"></i></div>
+                        <div><h3 style="margin: 0; font-size: 1.6rem; color: var(--text-main);">Matrix Calculator</h3><p style="margin: 0; color: var(--text-muted); font-size: 0.95rem;">Perform linear algebra operations</p></div>
+                    </div>
+                    <div style="border-left: 3px solid #8b5cf6; padding-left: 1.5rem; margin-bottom: 1.5rem;">
+                        <h4 style="color: var(--text-main); margin-bottom: 0.8rem;">Available Operations:</h4>
+                        <p style="color: var(--text-muted); line-height: 1.8; margin: 0;">✓ Matrix Addition &amp; Subtraction<br>✓ Matrix Multiplication<br>✓ Determinant Calculation<br>✓ Inverse of Matrices<br>✓ Transpose Operations</p>
+                    </div>
+                    <h4 style="color: var(--text-main); margin-bottom: 0.8rem;">Example: Add Two Matrices</h4>
+                    <pre style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 14px; padding: 1.2rem; color: var(--text-muted); font-size: 0.9rem; line-height: 1.7; overflow-x: auto;">Matrix A:       Matrix B:
+[1  2]          [3  4]
+[5  6]    +     [7  8]
+
+Result (A + B):
+[4   6]
+[12  14]
+
+Simply enter the dimensions, fill in values, and click Add.</pre>
                 </div>
 
-                <div class="glass" style="border-radius: 20px; padding: 2rem;">
-                    <h3 style="color: #8b5cf6; font-size: 1.5rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-graduation-cap"></i> Student Toolkit</h3>
-                    <p style="color: var(--text-muted); line-height: 1.6;">The Student Toolkit provides a dedicated space for academic helpers: a <strong>GPA calculator</strong> to track your grades, a built-in <strong>study timer</strong> (Pomodoro-ready), and quick access to curated study resources. Use the navigation dropdown or the toolkit home to jump between tools and resources instantly.</p>
+                <!-- ===== UNIT CONVERTER ===== -->
+                <div class="glass" style="border-radius: 20px; padding: 2.5rem;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 1.5rem;">
+                        <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #8b5cf6, #3b82f6); border-radius: 16px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-ruler-combined" style="font-size: 1.5rem; color: white;"></i></div>
+                        <div><h3 style="margin: 0; font-size: 1.6rem; color: var(--text-main);">Unit Converter</h3><p style="margin: 0; color: var(--text-muted); font-size: 0.95rem;">Convert between different measurements instantly</p></div>
+                    </div>
+                    <div style="border-left: 3px solid #10b981; padding-left: 1.5rem; margin-bottom: 1.5rem;">
+                        <h4 style="color: var(--text-main); margin-bottom: 0.8rem;">Supported Units:</h4>
+                        <p style="color: var(--text-muted); line-height: 1.8; margin: 0;">✓ Length: meters, feet, miles, kilometers<br>✓ Weight: grams, kilograms, pounds, ounces<br>✓ Temperature: Celsius, Fahrenheit, Kelvin<br>✓ Volume: liters, gallons, milliliters</p>
+                    </div>
+                    <h4 style="color: var(--text-main); margin-bottom: 0.8rem;">Example: Convert Temperature</h4>
+                    <pre style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 14px; padding: 1.2rem; color: var(--text-muted); font-size: 0.9rem; line-height: 1.7; overflow-x: auto;">Convert 100°C to Fahrenheit:
+Step 1: Select Category: Temperature
+Step 2: Enter value: 100
+Step 3: Select from: Celsius
+Step 4: Select to: Fahrenheit
+Step 5: Result: 212°F
+
+Convert 5 miles to kilometers:
+Step 1: Select Category: Length
+Step 2: Enter value: 5
+Step 3: Select from: Miles
+Step 4: Select to: Kilometers
+Step 5: Result: 8.047 km</pre>
+                </div>
+
+                <!-- ===== NUMBER SYSTEM ===== -->
+                <div class="glass" style="border-radius: 20px; padding: 2.5rem;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 1.5rem;">
+                        <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #f59e0b, #fbbf24); border-radius: 16px; display: flex; align-items: center; justify-content: center;"><span style="font-size: 1.5rem; font-weight: 800; color: white;">#</span></div>
+                        <div><h3 style="margin: 0; font-size: 1.6rem; color: var(--text-main);">Number System Converter</h3><p style="margin: 0; color: var(--text-muted); font-size: 0.95rem;">Convert between binary, decimal, octal, and hexadecimal</p></div>
+                    </div>
+                    <div style="border-left: 3px solid #f59e0b; padding-left: 1.5rem; margin-bottom: 1.5rem;">
+                        <h4 style="color: var(--text-main); margin-bottom: 0.8rem;">Number Systems Explained:</h4>
+                        <p style="color: var(--text-muted); line-height: 1.8; margin: 0;"><strong>Binary (Base 2):</strong> Uses digits 0-1. Used in computers. Example: 1010₂ = 10₁₀<br><strong>Octal (Base 8):</strong> Uses digits 0-7. Used in computing. Example: 12₈ = 10₁₀<br><strong>Decimal (Base 10):</strong> Standard numbering system. Uses digits 0-9. Example: 10₁₀<br><strong>Hexadecimal (Base 16):</strong> Uses digits 0-9 and letters A-F. Example: A₁₆ = 10₁₀</p>
+                    </div>
+                    <h4 style="color: var(--text-main); margin-bottom: 0.8rem;">How to Use:</h4>
+                    <pre style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 14px; padding: 1.2rem; color: var(--text-muted); font-size: 0.9rem; line-height: 1.7; overflow-x: auto;">Step 1: Select the input NUMBER SYSTEM (e.g., Decimal)
+Step 2: Enter the number (e.g., 255)
+Step 3: Select the output system (e.g., Binary)
+Step 4: Click Convert
+Result: 11111111
+
+Examples:
+• Decimal 100 → Binary: 1100100
+• Decimal 255 → Hexadecimal: FF
+• Binary 1010 → Decimal: 10
+• Hexadecimal ABCD → Decimal: 43981</pre>
+                    <div style="margin-top: 1rem; padding: 1rem; background: rgba(245,158,11,0.08); border-radius: 12px; border: 1px solid rgba(245,158,11,0.15);">
+                        <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">🔧 <strong>Pro Tip:</strong> Click on the binary representation to toggle individual bits (0→1) for educational purposes</p>
+                    </div>
+                </div>
+
+                <!-- ===== CALCULUS ===== -->
+                <div class="glass" style="border-radius: 20px; padding: 2.5rem;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 1.5rem;">
+                        <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #ec4899, #6366f1); border-radius: 16px; display: flex; align-items: center; justify-content: center;"><span style="font-family: 'Times New Roman', serif; font-style: italic; font-size: 2rem; color: white; font-weight: bold;">√x</span></div>
+                        <div><h3 style="margin: 0; font-size: 1.6rem; color: var(--text-main);">Calculus Tools</h3><p style="margin: 0; color: var(--text-muted); font-size: 0.95rem;">Derivatives, integrals, limits, and series operations</p></div>
+                    </div>
+                    <div style="border-left: 3px solid #6366f1; padding-left: 1.5rem; margin-bottom: 1.5rem;">
+                        <h4 style="color: var(--text-main); margin-bottom: 0.8rem;">Calculus Operations:</h4>
+                        <p style="color: var(--text-muted); line-height: 1.8; margin: 0;"><strong>Derivatives:</strong> Find the rate of change of a function. Example: d/dx(x²) = 2x<br><strong>Limits:</strong> Determine the value a function approaches. Example: lim(x→∞) 1/x = 0<br><strong>Series:</strong> Sum of sequences of terms. Example: Taylor series, Fourier series<br><strong>Integration Concepts:</strong> Anti-derivatives and area under curves</p>
+                    </div>
+                    <h4 style="color: var(--text-main); margin-bottom: 0.8rem;">How to Use:</h4>
+                    <pre style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 14px; padding: 1.2rem; color: var(--text-muted); font-size: 0.9rem; line-height: 1.7; overflow-x: auto;">Derivative Example:
+Step 1: Select "Derivative"
+Step 2: Enter function: x^3 + 2x
+Step 3: Specify variable: x
+Step 4: Get result: 3x² + 2
+
+Limit Example:
+Step 1: Select "Limit"
+Step 2: Enter function: sin(x)/x
+Step 3: Set approach value: 0
+Step 4: Get result: 1
+
+Series Example:
+Taylor Series of sin(x) around 0:
+x − x³/3! + x⁵/5! − x⁷/7! + ...</pre>
+                    <div style="margin-top: 1rem; border-left: 3px solid #ec4899; padding-left: 1.5rem;">
+                        <h4 style="color: var(--text-main); margin-bottom: 0.5rem;">📚 Key Concepts:</h4>
+                        <p style="color: var(--text-muted); line-height: 1.8; margin: 0;"><strong>f'(x)</strong> — First derivative (slope/rate of change)<br><strong>f''(x)</strong> — Second derivative (concavity)<br><strong>∫f(x)dx</strong> — Indefinite integral (antiderivative)<br><strong>∫ₐᵇf(x)dx</strong> — Definite integral (area under curve from a to b)</p>
+                    </div>
+                </div>
+
+                <!-- ===== MISCELLANEOUS CALCULATORS ===== -->
+                <div class="glass" style="border-radius: 20px; padding: 2.5rem;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 1.5rem;">
+                        <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #64748b, #94a3b8); border-radius: 16px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-briefcase" style="font-size: 1.5rem; color: white;"></i></div>
+                        <div><h3 style="margin: 0; font-size: 1.6rem; color: var(--text-main);">Miscellaneous Calculators</h3><p style="margin: 0; color: var(--text-muted); font-size: 0.95rem;">Specialized tools for statistics, finance, and academics</p></div>
+                    </div>
+                    <h4 style="color: var(--text-main); margin-bottom: 1rem;">Available Tools:</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+                        <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 14px; padding: 1.2rem;">
+                            <h5 style="color: var(--text-main); margin: 0 0 0.5rem;">📊 GPA Calculator</h5>
+                            <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.5rem;">Calculate your Grade Point Average instantly</p>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;"><strong>How:</strong> Enter course names, letter grades (A-F), and credit hours. System calculates weighted average GPA</p>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0.3rem 0 0;"><strong>Example:</strong> Math (A, 3cr) + English (B+, 3cr) → GPA: 3.67</p>
+                        </div>
+                        <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 14px; padding: 1.2rem;">
+                            <h5 style="color: var(--text-main); margin: 0 0 0.5rem;">🏦 Loan/Mortgage Calculator</h5>
+                            <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.5rem;">Calculate monthly payments and total interest</p>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;"><strong>How:</strong> Enter principal amount, annual interest rate, and loan term in years</p>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0.3rem 0 0;"><strong>Example:</strong> $200,000 @ 5% for 30 years → Monthly: $1,073.64</p>
+                        </div>
+                        <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 14px; padding: 1.2rem;">
+                            <h5 style="color: var(--text-main); margin: 0 0 0.5rem;">📈 Statistical Analysis</h5>
+                            <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.5rem;">Mean, median, mode, std dev, variance</p>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;"><strong>How:</strong> Enter comma-separated data points. Calculate instantly</p>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0.3rem 0 0;"><strong>Example:</strong> Data: 10,20,30 → Mean: 20, StdDev: 10</p>
+                        </div>
+                        <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 14px; padding: 1.2rem;">
+                            <h5 style="color: var(--text-main); margin: 0 0 0.5rem;">🍎 BMI Calculator</h5>
+                            <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.5rem;">Body Mass Index and health category</p>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;"><strong>How:</strong> Enter weight (kg) and height (m). Get BMI and category</p>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0.3rem 0 0;"><strong>Example:</strong> 70kg, 1.75m → BMI: 22.86 (Normal)</p>
+                        </div>
+                        <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 14px; padding: 1.2rem;">
+                            <h5 style="color: var(--text-main); margin: 0 0 0.5rem;">% Percentage Calculator</h5>
+                            <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.5rem;">Calculate percentages, discounts, markups</p>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;"><strong>How:</strong> Enter values and get percentage results instantly</p>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0.3rem 0 0;"><strong>Example:</strong> 25% of 200 = 50</p>
+                        </div>
+                        <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 14px; padding: 1.2rem;">
+                            <h5 style="color: var(--text-main); margin: 0 0 0.5rem;">🔢 Number Sequences</h5>
+                            <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.5rem;">Generate Fibonacci, prime numbers, factorization</p>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;"><strong>How:</strong> Select sequence type and enter parameters</p>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0.3rem 0 0;"><strong>Example:</strong> Fibonacci(8) = 1, 1, 2, 3, 5, 8, 13, 21</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== AI MARKS PREDICTOR ===== -->
+                <div class="glass" style="border-radius: 20px; padding: 2.5rem;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 1.5rem;">
+                        <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #a855f7, #6366f1); border-radius: 16px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-brain" style="font-size: 1.5rem; color: white;"></i></div>
+                        <div><h3 style="margin: 0; font-size: 1.6rem; color: var(--text-main);">AI Marks Predictor</h3><p style="margin: 0; color: var(--text-muted); font-size: 0.95rem;">Predict your exam marks using Machine Learning</p></div>
+                    </div>
+                    <div style="border-left: 3px solid #a855f7; padding-left: 1.5rem; margin-bottom: 1.5rem;">
+                        <h4 style="color: var(--text-main); margin-bottom: 0.8rem;">What It Does:</h4>
+                        <p style="color: var(--text-muted); line-height: 1.8; margin: 0;">The AI Marks Predictor uses a trained Machine Learning model to estimate your exam score based on your study habits, lifestyle, and academic metrics. It analyzes patterns from real student performance data to give you an accurate prediction.</p>
+                    </div>
+
+                    <h4 style="color: var(--text-main); margin-bottom: 0.8rem;">📝 Input Fields:</h4>
+                    <div style="overflow-x: auto; margin-bottom: 1.5rem;">
+                        <table style="width: 100%; border-collapse: collapse; border-radius: 12px; overflow: hidden;">
+                            <thead><tr style="background: rgba(168,85,247,0.12);">
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">Field</th>
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">Description</th>
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">Range</th>
+                                <th style="padding: 0.8rem 1rem; text-align: left; color: var(--text-main); font-weight: 700;">Example</th>
+                            </tr></thead>
+                            <tbody style="color: var(--text-muted);">
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;"><strong>Study Hours</strong></td><td style="padding: 0.7rem 1rem;">Daily study hours</td><td style="padding: 0.7rem 1rem;">0 - 24</td><td style="padding: 0.7rem 1rem;">5</td></tr>
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;"><strong>Attendance</strong></td><td style="padding: 0.7rem 1rem;">Class attendance percentage</td><td style="padding: 0.7rem 1rem;">0% - 100%</td><td style="padding: 0.7rem 1rem;">85</td></tr>
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;"><strong>GPA</strong></td><td style="padding: 0.7rem 1rem;">Current Grade Point Average</td><td style="padding: 0.7rem 1rem;">0.00 - 4.00</td><td style="padding: 0.7rem 1rem;">3.5</td></tr>
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;"><strong>Sleep Hours</strong></td><td style="padding: 0.7rem 1rem;">Daily sleep duration</td><td style="padding: 0.7rem 1rem;">0 - 24</td><td style="padding: 0.7rem 1rem;">7</td></tr>
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;"><strong>Participation</strong></td><td style="padding: 0.7rem 1rem;">Class participation level</td><td style="padding: 0.7rem 1rem;">0 - 10</td><td style="padding: 0.7rem 1rem;">8</td></tr>
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;"><strong>Homework Completion</strong></td><td style="padding: 0.7rem 1rem;">Homework submitted on time</td><td style="padding: 0.7rem 1rem;">0% - 100%</td><td style="padding: 0.7rem 1rem;">90</td></tr>
+                                <tr style="border-bottom: 1px solid var(--glass-border);"><td style="padding: 0.7rem 1rem;"><strong>Extracurricular Hours</strong></td><td style="padding: 0.7rem 1rem;">Hours in activities outside class</td><td style="padding: 0.7rem 1rem;">0 - 24</td><td style="padding: 0.7rem 1rem;">2</td></tr>
+                                <tr><td style="padding: 0.7rem 1rem;"><strong>Stress Level</strong></td><td style="padding: 0.7rem 1rem;">Self-reported stress rating</td><td style="padding: 0.7rem 1rem;">0 - 10</td><td style="padding: 0.7rem 1rem;">4</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h4 style="color: var(--text-main); margin-bottom: 0.8rem;">How to Use:</h4>
+                    <pre style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 14px; padding: 1.2rem; color: var(--text-muted); font-size: 0.9rem; line-height: 1.7; overflow-x: auto;">Step 1: Navigate to AI Results Predictor (Student Toolkit menu)
+Step 2: Fill in all 8 fields with your current data
+Step 3: Click "Predict Marks"
+Step 4: View your predicted exam score
+
+Example:
+  Study Hours: 5
+  Attendance: 85%
+  GPA: 3.5
+  Sleep Hours: 7
+  Participation: 8
+  Homework Completion: 90%
+  Extracurricular Hours: 2
+  Stress Level: 4
+  → Predicted Score: ~78 marks</pre>
+                    <div style="margin-top: 1rem; padding: 1rem; background: rgba(168,85,247,0.08); border-radius: 12px; border: 1px solid rgba(168,85,247,0.15);">
+                        <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">🧠 <strong>How It Works:</strong> The model is trained on real student performance data using Machine Learning algorithms. It identifies patterns between your habits (study hours, sleep, stress) and academic outcomes to generate predictions. Higher study hours, good attendance, and lower stress generally lead to better predicted scores.</p>
+                    </div>
+                    <div style="margin-top: 0.8rem; padding: 1rem; background: rgba(245,158,11,0.08); border-radius: 12px; border: 1px solid rgba(245,158,11,0.15);">
+                        <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">⚠️ <strong>Note:</strong> Predictions are estimates based on statistical patterns and should be used as a guide, not a guarantee. Use the results to identify areas for improvement in your study habits.</p>
+                    </div>
                 </div>
 
             </div>

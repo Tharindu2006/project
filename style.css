@@ -556,8 +556,35 @@
 
         
         /* ===== MOBILE RESPONSIVE DESIGN ===== */
-        
-        /* Reduce blur effects on mobile for better performance */
+
+        /* --- Mobile Menu Button (hidden on desktop) --- */
+        .mobile-menu-btn {
+            display: none;
+        }
+
+        /* --- Global touch-friendly improvements --- */
+        @media (max-width: 768px) {
+            /* Ensure tap targets are at least 44px */
+            .icon-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 1.1rem;
+            }
+
+            /* Smooth scroll for mobile containers */
+            .calc-wrapper,
+            #page-help .glass,
+            .reviews-faq-container {
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Prevent text size adjustment on orientation change */
+            html {
+                -webkit-text-size-adjust: 100%;
+            }
+        }
+
+        /* --- Reduce blur effects on mobile for better performance --- */
         @media (max-width: 480px) {
             .bg-blob {
                 filter: blur(60px) !important;
@@ -565,12 +592,95 @@
             }
         }
 
-        /* Tablet devices (portrait) - handles 481px to 768px */
+        /* =========================== */
+        /*  TABLET (max-width: 768px)  */
+        /* =========================== */
         @media (max-width: 768px) {
             body {
                 overflow-x: hidden;
             }
 
+            /* --- HAMBURGER MENU --- */
+            .mobile-menu-btn {
+                display: flex !important;
+                order: -1;
+            }
+
+            .navbar {
+                padding: 0.8rem 1rem;
+                flex-wrap: wrap;
+            }
+
+            .nav-brand {
+                font-size: 1.2rem;
+            }
+
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                width: 100%;
+                order: 10;
+                gap: 0;
+                padding: 1rem 0 0.5rem;
+                border-top: 1px solid var(--glass-border);
+                margin-top: 0.8rem;
+            }
+
+            .nav-links.mobile-open {
+                display: flex;
+            }
+
+            .nav-links > li {
+                width: 100%;
+            }
+
+            .nav-links a.nav-item,
+            .nav-links .dropdown-toggle {
+                display: block;
+                width: 100%;
+                padding: 0.9rem 1rem;
+                font-size: 0.95rem;
+                border-radius: 10px;
+            }
+
+            .nav-links a.nav-item:hover,
+            .nav-links .dropdown-toggle:hover {
+                background: rgba(139, 92, 246, 0.1);
+            }
+
+            /* Mobile dropdowns expand inline */
+            .dropdown .dropdown-menu {
+                position: static;
+                opacity: 1;
+                visibility: visible;
+                transform: none;
+                pointer-events: auto;
+                display: none;
+                background: rgba(var(--glass-bg-rgb, 255,255,255), 0.05);
+                backdrop-filter: none;
+                box-shadow: none;
+                border: none;
+                border-radius: 0;
+                padding: 0.5rem 0 0.5rem 1rem;
+                min-width: unset;
+            }
+
+            .dropdown:hover .dropdown-menu,
+            .dropdown.open .dropdown-menu {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .dropdown-menu a {
+                padding: 0.7rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .nav-right {
+                gap: 10px !important;
+            }
+
+            /* --- PAGE LAYOUT --- */
             .page {
                 padding: 7rem 1rem 2rem;
             }
@@ -589,6 +699,7 @@
                 margin-bottom: 1.5rem;
             }
 
+            /* --- TOOLS GRID --- */
             .tools-grid {
                 grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
                 gap: 1.2rem;
@@ -613,10 +724,16 @@
                 font-size: 0.85rem;
             }
 
+            /* --- CALCULATOR COMMON --- */
             .calc-wrapper {
                 padding: 0 0.5rem;
             }
 
+            .calc-header h2 {
+                font-size: clamp(1.4rem, 4vw, 2rem);
+            }
+
+            /* --- STANDARD CALC --- */
             .std-calc-container {
                 max-width: 100%;
                 padding: 16px;
@@ -638,6 +755,7 @@
                 min-height: 44px;
             }
 
+            /* --- SCIENTIFIC CALC --- */
             .sci-display-area {
                 min-height: 120px;
                 padding: 20px 10px;
@@ -657,6 +775,7 @@
                 min-height: 40px;
             }
 
+            /* --- GRAPHING --- */
             .graphing-layout {
                 flex-direction: column;
                 height: auto;
@@ -671,6 +790,7 @@
                 border-bottom: 1px solid var(--glass-border);
             }
 
+            /* --- MATRIX --- */
             .matrix-display-area {
                 min-height: 120px;
                 padding: 1rem;
@@ -689,6 +809,7 @@
                 min-height: 40px;
             }
 
+            /* --- CONVERTER --- */
             .converter-container {
                 flex-direction: column;
                 gap: 15px;
@@ -698,6 +819,7 @@
                 height: 200px;
             }
 
+            /* --- GPA --- */
             .gpa-row {
                 gap: 8px;
                 flex-wrap: wrap;
@@ -711,22 +833,7 @@
                 font-size: 0.9rem !important;
             }
 
-            .navbar {
-                padding: 0.8rem 1rem;
-            }
-
-            .nav-brand {
-                font-size: 1.2rem;
-            }
-
-            .nav-links {
-                gap: 1rem;
-            }
-
-            .nav-links a.nav-item {
-                font-size: 0.85rem;
-            }
-
+            /* --- INPUTS --- */
             .math-input-group input,
             .math-input-group textarea,
             .math-input-group select {
@@ -735,6 +842,7 @@
                 border-radius: 10px;
             }
 
+            /* --- AUTH MODAL --- */
             .login-modal {
                 padding: 2rem 1.5rem;
                 width: 95%;
@@ -742,6 +850,15 @@
                 border-radius: 20px;
             }
 
+            /* --- HISTORY PANEL --- */
+            #calc-history-panel {
+                width: 90vw !important;
+                right: 5vw !important;
+                left: 5vw !important;
+                max-height: 60vh !important;
+            }
+
+            /* --- FOOTER --- */
             footer {
                 padding: 1.5rem;
                 font-size: 0.9rem;
@@ -751,9 +868,53 @@
                 font-size: 1.2rem;
                 margin: 0 0.5rem;
             }
+
+            /* --- REVIEWS & FAQ --- */
+            .reviews-faq-container {
+                grid-template-columns: 1fr !important;
+                gap: 2rem !important;
+                padding: 0 1rem !important;
+                margin: 3rem auto !important;
+            }
+
+            /* --- HELP CENTER --- */
+            #page-help .glass table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            #page-help .glass {
+                padding: 1.5rem !important;
+                border-radius: 16px !important;
+            }
+
+            #page-help .calc-wrapper {
+                max-width: 100% !important;
+            }
+
+            /* --- NUMBER SYSTEM --- */
+            .num-sys-container {
+                padding: 1rem;
+            }
+
+            /* --- CALCULUS --- */
+            .calc-tabs {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .tab-btn {
+                flex: 1;
+                min-width: 100px;
+                font-size: 0.85rem;
+                padding: 0.6rem 0.8rem;
+            }
         }
 
-        /* Small phones (max-width: 480px) */
+        /* ================================ */
+        /*  SMALL PHONES (max-width: 480px) */
+        /* ================================ */
         @media (max-width: 480px) {
             .page {
                 padding: 6rem 0.75rem 1.5rem;
@@ -769,6 +930,7 @@
                 margin-bottom: 1.2rem;
             }
 
+            /* --- TOOLS GRID --- */
             .tools-grid {
                 grid-template-columns: 1fr;
                 gap: 1rem;
@@ -787,15 +949,18 @@
                 font-size: 0.8rem;
             }
 
+            /* --- CALC HEADERS --- */
             .calc-header h2 {
                 font-size: clamp(1.3rem, 4vw, 2rem);
                 margin-bottom: 0.5rem;
             }
 
+            /* --- STANDARD CALC --- */
             .std-display .curr {
                 font-size: 2rem;
             }
 
+            /* --- SCIENTIFIC CALC --- */
             .vk-grid.main {
                 grid-template-columns: repeat(4, 1fr);
             }
@@ -809,6 +974,7 @@
                 font-size: 0.8rem;
             }
 
+            /* --- MATRIX --- */
             .matrix-keypad.main {
                 grid-template-columns: repeat(4, 1fr);
             }
@@ -817,6 +983,7 @@
                 grid-template-columns: repeat(3, 1fr);
             }
 
+            /* --- GPA --- */
             .gpa-row {
                 margin-bottom: 8px;
                 gap: 6px;
@@ -829,6 +996,7 @@
                 min-width: 70px;
             }
 
+            /* --- NAVBAR --- */
             .navbar {
                 padding: 0.6rem 0.75rem;
             }
@@ -838,14 +1006,13 @@
                 gap: 6px;
             }
 
-            .nav-links {
-                gap: 0.75rem;
+            .nav-links a.nav-item,
+            .nav-links .dropdown-toggle {
+                font-size: 0.9rem;
+                padding: 0.8rem 1rem;
             }
 
-            .nav-links a.nav-item {
-                font-size: 0.8rem;
-            }
-
+            /* --- INPUTS --- */
             .math-input-group input,
             .math-input-group textarea {
                 padding: 0.9rem;
@@ -857,6 +1024,7 @@
                 font-size: 1rem;
             }
 
+            /* --- AUTH MODAL --- */
             .login-modal {
                 padding: 1.5rem 1.2rem;
                 width: 96%;
@@ -864,6 +1032,7 @@
                 border-radius: 16px;
             }
 
+            /* --- BUTTONS --- */
             .btn,
             .btn-primary,
             .btn-auth {
@@ -872,18 +1041,98 @@
                 font-size: 0.95rem;
             }
 
+            /* --- FOOTER --- */
             footer {
                 padding: 1rem;
                 font-size: 0.8rem;
+            }
+
+            footer > div > div:first-child {
+                grid-template-columns: 1fr !important;
+                gap: 2rem !important;
             }
 
             .footer-socials a {
                 font-size: 1rem;
                 margin: 0 0.3rem;
             }
+
+            /* --- REVIEWS & FAQ --- */
+            .reviews-faq-container {
+                padding: 0 0.5rem !important;
+                margin: 2rem auto !important;
+            }
+
+            .reviews-section h2,
+            .faq-section h2 {
+                font-size: 1.8rem !important;
+            }
+
+            .review-form {
+                padding: 1.5rem !important;
+            }
+
+            /* --- HELP CENTER --- */
+            #page-help .glass {
+                padding: 1rem !important;
+            }
+
+            #page-help .glass h3 {
+                font-size: 1.2rem !important;
+            }
+
+            #page-help .glass table {
+                font-size: 0.85rem;
+            }
+
+            #page-help .hero-title {
+                font-size: 2.5rem !important;
+            }
         }
 
-        /* Large tablets and desktop (1024px and up) */
+        /* ======================================== */
+        /*  EXTRA SMALL PHONES (max-width: 360px)   */
+        /* ======================================== */
+        @media (max-width: 360px) {
+            .hero-title {
+                font-size: 1.4rem;
+            }
+
+            .vk-grid.main {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .vk-grid.func {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .vk-btn {
+                padding: 8px 0;
+                font-size: 0.75rem;
+            }
+
+            .std-display .curr {
+                font-size: 1.8rem;
+            }
+
+            .glass-btn {
+                padding: 12px 0;
+                font-size: 1rem;
+            }
+
+            .nav-brand {
+                font-size: 1rem;
+            }
+
+            .reviews-section h2,
+            .faq-section h2 {
+                font-size: 1.5rem !important;
+            }
+        }
+
+        /* =================================== */
+        /*  LARGE TABLETS / DESKTOP (1024px+)  */
+        /* =================================== */
         @media (min-width: 1024px) {
             .tools-grid {
                 grid-template-columns: repeat(3, 1fr);
@@ -894,7 +1143,9 @@
             }
         }
 
-        /* Landscape orientation adjustments */
+        /* ============================== */
+        /*  LANDSCAPE ORIENTATION          */
+        /* ============================== */
         @media (max-height: 500px) and (orientation: landscape) {
             .page {
                 padding: 5rem 2rem 1rem;
@@ -918,7 +1169,9 @@
             }
         }
 
-        /* Accessibility: Reduce motion for users who prefer it */
+        /* ========================== */
+        /*  ACCESSIBILITY              */
+        /* ========================== */
         @media (prefers-reduced-motion: reduce) {
             * {
                 animation-duration: 0.01ms !important;
@@ -927,7 +1180,9 @@
             }
         }
 
-        /* Print styles */
+        /* ========================== */
+        /*  PRINT STYLES              */
+        /* ========================== */
         @media print {
             .navbar,
             footer,

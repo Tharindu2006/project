@@ -1,24 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <meta name="description" content="Calculate your GPA easily with our intuitive GPA calculator tool.">
-    <meta name="theme-color" content="#8b5cf6">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>GPA Calculator - Student Toolkit</title>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="description" content="AI-powered marks predictor - Predict your academic performance using machine learning.">
+<meta name="theme-color" content="#8b5cf6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>AI Marks Predictor - MathHub</title>
 
-    <link rel="stylesheet" href="style.css">
-    <!-- jsPDF for PDF export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- html2canvas for screenshot functionality -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="script.js"></script>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<link rel="stylesheet" href="style.css">
+<script src="script.js"></script>
 </head>
 <body>
 
@@ -241,115 +237,58 @@
         </div>
     </div>
 
-    <!-- GPA CALCULATOR PAGE -->
-    <main class="page active" id="gpa-calculator">
-        <div class="calc-wrapper" style="max-width: 900px;">
+    <!-- AI PREDICTOR PAGE -->
+    <main class="page active" id="ai-model">
+        <div class="calc-wrapper" style="max-width: 800px;">
             <button class="btn-back" onclick="window.location.href='student-home.html'"><i class="fa-solid fa-arrow-left"></i> Back to Student Toolkit</button>
             <div class="calc-header">
-                <h2 class="hero-title animated-gradient-text" style="font-size: 3.5rem;">GPA Calculator</h2>
-                <p>Calculate your Grade Point Average with detailed course breakdown and formula display.</p>
+                <h2 class="hero-title animated-gradient-text" style="font-size: 3.5rem;">AI Marks Predictor</h2>
+                <p>Use Machine Learning to predict your exam marks based on your study habits and metrics.</p>
             </div>
             
             <div class="glass" style="border-radius: 24px; padding: 2.5rem;">
-                <div id="gpa-rows-container" style="background: var(--glass-panel); border: 1px solid var(--glass-border); padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem;">
-                    <div class="gpa-header-row">
-                        <div style="flex: 1.5;">Course Name</div>
-                        <div style="flex: 1;">Credits</div>
-                        <div style="flex: 1;">Grade</div>
-                        <div style="width: 48px;"></div> <!-- Spacer for delete button -->
-                    </div>
-                    <div class="gpa-row">
-                        <div class="math-input-group" style="flex: 1.5; margin:0;"><input type="text" placeholder="Course Name (Optional)"></div>
-                        <div class="math-input-group" style="flex: 1; margin:0;"><input type="number" class="gpa-cred" placeholder="Credits" value="3"></div>
-                        <div class="math-input-group" style="flex: 1; margin:0;">
-                            <select class="glass-select gpa-grade" style="padding: 0.8rem;">
-                                <option value="4.0">A+ (4.0)</option>
-                                <option value="4.0" selected>A (4.0)</option>
-                                <option value="3.7">A- (3.7)</option>
-                                <option value="3.3">B+ (3.3)</option>
-                                <option value="3.0">B (3.0)</option>
-                                <option value="2.7">B- (2.7)</option>
-                                <option value="2.3">C+ (2.3)</option>
-                                <option value="2.0">C (2.0)</option>
-                                <option value="1.7">C- (1.7)</option>
-                                <option value="1.3">D+ (1.3)</option>
-                                <option value="1.0">D (1.0)</option>
-                                <option value="0.0">E (0.0)</option>
-                                <option value="0.0">F (0.0)</option>
-                            </select>
+                <form id="predictForm" style="display: grid; gap: 1.5rem;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                        <div class="math-input-group">
+                            <label>Study Hours</label>
+                            <input type="number" name="study_hours" placeholder="e.g. 5" required>
                         </div>
-                        <button class="icon-btn" style="width: 48px; height: 48px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border-radius: 12px;" onclick="this.parentElement.remove(); gpaApp.calcGPA();"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                    <div class="gpa-row">
-                        <div class="math-input-group" style="flex: 1.5; margin:0;"><input type="text" placeholder="Course Name (Optional)"></div>
-                        <div class="math-input-group" style="flex: 1; margin:0;"><input type="number" class="gpa-cred" placeholder="Credits" value="4"></div>
-                        <div class="math-input-group" style="flex: 1; margin:0;">
-                            <select class="glass-select gpa-grade" style="padding: 0.8rem;">
-                                <option value="4.0">A+ (4.0)</option>
-                                <option value="4.0">A (4.0)</option>
-                                <option value="3.7">A- (3.7)</option>
-                                <option value="3.3">B+ (3.3)</option>
-                                <option value="3.0" selected>B (3.0)</option>
-                                <option value="2.7">B- (2.7)</option>
-                                <option value="2.3">C+ (2.3)</option>
-                                <option value="2.0">C (2.0)</option>
-                                <option value="1.7">C- (1.7)</option>
-                                <option value="1.3">D+ (1.3)</option>
-                                <option value="1.0">D (1.0)</option>
-                                <option value="0.0">E (0.0)</option>
-                                <option value="0.0">F (0.0)</option>
-                            </select>
+                        <div class="math-input-group">
+                            <label>Attendance (%)</label>
+                            <input type="number" name="attendance" placeholder="e.g. 85" required>
                         </div>
-                        <button class="icon-btn" style="width: 48px; height: 48px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border-radius: 12px;" onclick="this.parentElement.remove(); gpaApp.calcGPA();"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                    <div class="gpa-row">
-                        <div class="math-input-group" style="flex: 1.5; margin:0;"><input type="text" placeholder="Course Name (Optional)"></div>
-                        <div class="math-input-group" style="flex: 1; margin:0;"><input type="number" class="gpa-cred" placeholder="Credits" value="3"></div>
-                        <div class="math-input-group" style="flex: 1; margin:0;">
-                            <select class="glass-select gpa-grade" style="padding: 0.8rem;">
-                                <option value="4.0">A+ (4.0)</option>
-                                <option value="4.0">A (4.0)</option>
-                                <option value="3.7">A- (3.7)</option>
-                                <option value="3.3">B+ (3.3)</option>
-                                <option value="3.0">B (3.0)</option>
-                                <option value="2.7">B- (2.7)</option>
-                                <option value="2.3" selected>C+ (2.3)</option>
-                                <option value="2.0">C (2.0)</option>
-                                <option value="1.7">C- (1.7)</option>
-                                <option value="1.3">D+ (1.3)</option>
-                                <option value="1.0">D (1.0)</option>
-                                <option value="0.0">E (0.0)</option>
-                                <option value="0.0">F (0.0)</option>
-                            </select>
+                        <div class="math-input-group">
+                            <label>GPA</label>
+                            <input type="number" step="0.01" name="GPA" placeholder="e.g. 3.5" required>
                         </div>
-                        <button class="icon-btn" style="width: 48px; height: 48px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border-radius: 12px;" onclick="this.parentElement.remove(); gpaApp.calcGPA();"><i class="fa-solid fa-xmark"></i></button>
+                        <div class="math-input-group">
+                            <label>Sleep Hours</label>
+                            <input type="number" name="sleep_hours" placeholder="e.g. 7" required>
+                        </div>
+                        <div class="math-input-group">
+                            <label>Participation (0-10)</label>
+                            <input type="number" name="participation" placeholder="e.g. 8" required>
+                        </div>
+                        <div class="math-input-group">
+                            <label>Homework Completion (%)</label>
+                            <input type="number" name="homework_completion" placeholder="e.g. 90" required>
+                        </div>
+                        <div class="math-input-group">
+                            <label>Extracurricular Hours</label>
+                            <input type="number" name="extracurricular_hours" placeholder="e.g. 2" required>
+                        </div>
+                        <div class="math-input-group">
+                            <label>Stress Level (0-10)</label>
+                            <input type="number" name="stress_level" placeholder="e.g. 4" required>
+                        </div>
                     </div>
-                </div>
-                
-                <div style="margin-bottom: 1rem;">
-                    <button class="btn btn-outline" style="width: 100%; border-radius: 12px; border-style: dashed; padding: 1rem; color: var(--text-muted); border-color: var(--glass-border);" onclick="gpaApp.addGpaRow()">+ Add Course</button>
-                </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="padding: 1.2rem; font-size: 1.1rem; width: 100%; border-radius: 12px; margin-top: 1rem;">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Predict Marks
+                    </button>
+                </form>
 
-                <button class="btn btn-primary" style="width: 100%; padding: 1.2rem; font-size: 1.1rem; border-radius: 12px;" onclick="gpaApp.calcGPA()">Calculate GPA</button>
-                
-                <div id="gpa-result-container" class="glass" style="display: none; padding: 1.5rem; border-radius: 12px; margin-top: 1.5rem; overflow-x: auto;">
-                    <div id="gpa-general-formula" style="text-align: center; margin-bottom: 1rem; font-size: 1.2rem; color: var(--text-main);"></div>
-                    <div id="gpa-sums-display" style="text-align: center; margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-muted);"></div>
-                    <table class="gpa-table">
-                        <thead>
-                            <tr>
-                                <th>Course</th>
-                                <th>Grade</th>
-                                <th>Grade Point</th>
-                                <th>Credits</th>
-                                <th>GP &times; Credits</th>
-                            </tr>
-                        </thead>
-                        <tbody id="gpa-table-body">
-                        </tbody>
-                    </table>
-                    <div id="gpa-final-calc" style="text-align: center; margin-top: 1.5rem; font-size: 1.3rem; color: var(--text-main);"></div>
-                </div>
+                <div id="result" style="margin-top: 2rem; text-align: center; font-size: 1.5rem; font-weight: 700; color: var(--secondary); min-height: 2rem;"></div>
             </div>
         </div>
     </main>
@@ -414,90 +353,53 @@
         </div>
     </footer>
 
-    <script>
-        // GPA Calculator App
-        const gpaApp = {
-            addGpaRow: function() {
-                const container = document.getElementById('gpa-rows-container');
-                const newRow = document.createElement('div');
-                newRow.className = 'gpa-row';
-                newRow.innerHTML = `
-                    <div class="math-input-group" style="flex: 1.5; margin:0;"><input type="text" placeholder="Course Name (Optional)"></div>
-                    <div class="math-input-group" style="flex: 1; margin:0;"><input type="number" class="gpa-cred" placeholder="Credits" value="3"></div>
-                    <div class="math-input-group" style="flex: 1; margin:0;">
-                        <select class="glass-select gpa-grade" style="padding: 0.8rem;">
-                            <option value="4.0">A+ (4.0)</option>
-                            <option value="4.0" selected>A (4.0)</option>
-                            <option value="3.7">A- (3.7)</option>
-                            <option value="3.3">B+ (3.3)</option>
-                            <option value="3.0">B (3.0)</option>
-                            <option value="2.7">B- (2.7)</option>
-                            <option value="2.3">C+ (2.3)</option>
-                            <option value="2.0">C (2.0)</option>
-                            <option value="1.7">C- (1.7)</option>
-                            <option value="1.3">D+ (1.3)</option>
-                            <option value="1.0">D (1.0)</option>
-                            <option value="0.0">E (0.0)</option>
-                            <option value="0.0">F (0.0)</option>
-                        </select>
-                    </div>
-                    <button class="icon-btn" style="width: 48px; height: 48px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border-radius: 12px;" onclick="this.parentElement.remove(); gpaApp.calcGPA();"><i class="fa-solid fa-xmark"></i></button>
-                `;
-                container.appendChild(newRow);
-            },
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize theme
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+});
 
-            calcGPA: function() {
-                const rows = document.querySelectorAll('.gpa-row');
-                let totalPoints = 0;
-                let totalCredits = 0;
-                const tableBody = document.getElementById('gpa-table-body');
-                const resultContainer = document.getElementById('gpa-result-container');
-                const finalCalc = document.getElementById('gpa-final-calc');
-                const generalFormula = document.getElementById('gpa-general-formula');
+document.getElementById("predictForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    
+    // Show loading state
+    const btn = form.querySelector('button[type="submit"]');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analyzing...';
+    btn.disabled = true;
+    
+    const data = {
+        study_hours: form.study_hours.value,
+        attendance: form.attendance.value,
+        GPA: form.GPA.value,
+        sleep_hours: form.sleep_hours.value,
+        participation: form.participation.value,
+        homework_completion: form.homework_completion.value,
+        extracurricular_hours: form.extracurricular_hours.value,
+        stress_level: form.stress_level.value
+    };
 
-                tableBody.innerHTML = '';
-
-                rows.forEach(row => {
-                    const courseName = row.querySelector('input[type="text"]').value || 'Course';
-                    const credits = parseFloat(row.querySelector('.gpa-cred').value) || 0;
-                    const gradePoint = parseFloat(row.querySelector('.gpa-grade').value);
-
-                    if (credits > 0) {
-                        const gradePointsTimesCredits = gradePoint * credits;
-                        totalPoints += gradePointsTimesCredits;
-                        totalCredits += credits;
-
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${courseName}</td>
-                            <td>${row.querySelector('.gpa-grade option:checked').text.split(' ')[0]}</td>
-                            <td>${gradePoint}</td>
-                            <td>${credits}</td>
-                            <td>${gradePointsTimesCredits.toFixed(2)}</td>
-                        `;
-                        tableBody.appendChild(tr);
-                    }
-                });
-
-                if (totalCredits > 0) {
-                    const gpa = totalPoints / totalCredits;
-                    generalFormula.innerHTML = '<strong>GPA =</strong> <span style="font-family: serif;">∑</span>(Grade Point × Credit Hours) / <span style="font-family: serif;">∑</span>Credit Hours';
-                    document.getElementById('gpa-sums-display').innerHTML = `<strong>∑(Grade Point × Credit Hours) = ${totalPoints.toFixed(2)}</strong><br><strong>∑Credit Hours = ${totalCredits.toFixed(2)}</strong>`;
-                    finalCalc.innerHTML = `<strong>Final GPA = ${totalPoints.toFixed(2)} / ${totalCredits.toFixed(2)} = ${gpa.toFixed(2)}</strong>`;
-                    resultContainer.style.display = 'block';
-                } else {
-                    resultContainer.style.display = 'none';
-                }
-            }
-        };
-
-        // Initialize theme
-        document.addEventListener('DOMContentLoaded', function() {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            updateThemeIcon();
+    try {
+        const response = await fetch("http://127.0.0.1:5000/predict", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(data)
         });
-    </script>
-
+        const result = await response.json();
+        if(result.predicted_marks){
+            document.getElementById("result").innerHTML = `Predicted Marks: <span style="font-size: 2rem; color: var(--primary);">${result.predicted_marks}%</span>`;
+        } else {
+            document.getElementById("result").innerText = "Error: " + (result.error || "Unknown error");
+        }
+    } catch (error) {
+        document.getElementById("result").innerText = "Error: Could not connect to prediction server.";
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+});
+</script>
 </body>
 </html>
