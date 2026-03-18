@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Client Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="navbar">
+    <h2>Client Dashboard</h2>
+    <button onclick="logout()">Logout</button>
+</div>
+
+<div class="container">
+
+    <div class="card">
+        <h3>Create Care Request</h3>
+
+        <select id="hospital_id"></select>
+        <input id="condition" placeholder="Patient Condition">
+        <input id="days" type="number" placeholder="Required Days">
+
+        <button onclick="createRequest()">Post Request</button>
+    </div>
+
+    <div class="card">
+        <h3>Available Caregivers</h3>
+
+        <select id="filter_hospital"></select>
+        <button onclick="loadCaregivers()">Filter</button>
+
+        <div id="caregiver_list"></div>
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+<script>
+loadHospitals();
+loadHospitals("filter_hospital");
+</script>
+
+</body>
+</html>
