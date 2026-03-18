@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Care Connect</title>
+  <style>
+    /* Reset & Base */
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #f5f7fb; color: #333; }
+    
+    /* Navbar */
+    .navbar { position: fixed; top: 0; width: 100%; background: rgba(255,255,255,0.98); padding: 15px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
+    .navbar h1 { margin: 0; font-size: 24px; color: #004b8d; }
+    .nav-links a { text-decoration: none; color: #555; margin-left: 20px; font-weight: 600; font-size: 14px; text-transform: uppercase; cursor: pointer; }
+    .nav-links a:hover { color: #004b8d; }
+
+    /* Hero Section */
+    .hero { 
+      height: 100vh; 
+      background: linear-gradient(rgba(0, 75, 141, 0.6), rgba(0, 75, 141, 0.6)), url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80') center/cover no-repeat;
+      display: flex; align-items: center; justify-content: center; text-align: center; color: white;
+      padding-top: 60px; /* Offset for navbar */
+      box-sizing: border-box;
+    }
+    .hero-content { max-width: 800px; padding: 20px; }
+    .hero-content h2 { font-size: 3rem; margin-bottom: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+    .hero-content p { font-size: 1.25rem; margin-bottom: 30px; opacity: 0.9; }
+    .hero-btn { display: inline-block; padding: 15px 35px; margin: 10px; background: #fff; color: #004b8d; text-decoration: none; font-weight: bold; border-radius: 50px; transition: all 0.3s ease; cursor: pointer; border: none; font-size: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+    .hero-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.3); }
+    .hero-btn.secondary { background: rgba(255,255,255,0.2); border: 2px solid white; color: white; backdrop-filter: blur(5px); }
+    .hero-btn.secondary:hover { background: white; color: #004b8d; }
+
+    /* Layout */
+    .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+    #app { display: flex; flex-direction: column; gap: 40px; }
+    .grid-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; }
+
+    /* Sections */
+    section { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+    section h2 { margin-top: 0; color: #004b8d; border-bottom: 2px solid #f0f2f5; padding-bottom: 15px; margin-bottom: 20px; }
+    
+    /* UI Elements */
+    label { display: block; margin-top: 15px; font-weight: 600; color: #4a5568; font-size: 0.95rem; }
+    input, select, textarea { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; font-family: inherit; transition: border 0.2s; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #004b8d; box-shadow: 0 0 0 3px rgba(0,75,141,0.1); }
+    button { margin-top: 20px; padding: 12px 24px; background: #004b8d; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background 0.2s; }
+    button:hover { background: #00386b; }
+    button:disabled { background: #cbd5e0; cursor: not-allowed; }
+    .list { max-height: 400px; overflow-y: auto; padding-right: 5px; }
+    .list::-webkit-scrollbar { width: 6px; }
+    .list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+    .card { background: #f8fafc; border: 1px solid #edf2f7; border-radius: 10px; padding: 15px; margin-bottom: 15px; transition: transform 0.2s; }
+    .card:hover { transform: translateY(-2px); border-color: #cbd5e0; }
+    .pill { display: inline-block; padding: 4px 12px; background: #ebf8ff; color: #2b6cb0; border-radius: 99px; font-size: 0.8rem; font-weight: 600; margin-right: 8px; margin-bottom: 8px; }
+    
+    /* Modal */
+    .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+    .modal-content { background-color: #fefefe; margin: 80px auto; padding: 30px; border: 1px solid #888; width: 90%; max-width: 500px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; animation: fadeIn 0.3s; }
+    .close-modal { position: absolute; right: 20px; top: 15px; color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
+    .close-modal:hover { color: #333; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <h1>Care Connect</h1>
+    <div class="nav-links">
+      <a href="#requests-section">Requests</a>
+      <a href="#caregivers-section">Caregivers</a>
+      <a onclick="openLogin()">Login</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-content">
+      <h2>Compassionate Care, Connected.</h2>
+      <p>Bringing people together with hospital-verified caregiving support.</p>
+      <div>
+        <button class="hero-btn" onclick="openRegister('seeker')">Register as Seeker</button>
+        <button class="hero-btn secondary" onclick="openRegister('caregiver')">Register as Caregiver</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="app" class="container">
+    <div class="grid-row">
+      <section id="requests-section">
+        <h2>People Asking for Care</h2>
+        <label>Filter by hospital</label>
+        <select id="requestHospitalFilter" onchange="loadRequests()"></select>
+        <div class="list" id="requests"></div>
+        <div id="requestForm" style="display:none; margin-top:20px; border-top:2px dashed #e2e8f0; padding-top:20px;">
+          <h3 style="margin-top:0">Create Request</h3>
+          <label>Title <input id="reqTitle"></label>
+          <label>Description <textarea id="reqDesc"></textarea></label>
+          <label>Hospital <select id="reqHospital"></select></label>
+          <button onclick="createRequest()">Post</button>
+        </div>
+      </section>
+
+      <section id="caregivers-section">
+        <h2>Caregivers</h2>
+        <label>Filter by hospital</label>
+        <select id="caregiverHospitalFilter" onchange="loadCaregivers()"></select>
+        <div class="list" id="caregivers"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeLogin()">&times;</span>
+      <h2 id="modalTitle" style="margin-top:0; color:#004b8d;">Login</h2>
+      <div id="authForm">
+        <label>Email <input id="email" placeholder="name@example.com"></label>
+        <label>Password <input id="password" type="password" placeholder="********"></label>
+        <div id="registerFields" style="display:none;">
+          <label>Name <input id="name" placeholder="Your Name"></label>
+          <label>Role
+            <select id="role">
+              <option value="seeker">Person in need</option>
+              <option value="caregiver">Caregiver</option>
+            </select>
+          </label>
+          <label>Hospitals (for caregivers)</label>
+          <select id="hospitalSelect" multiple style="height:80px;"></select>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button id="btnLogin" onclick="login()" style="flex:1;">Login</button>
+            <button id="btnRegister" onclick="register()" style="flex:1; background-color:#2b6cb0; display:none;">Register</button>
+        </div>
+      </div>
+      <div style="margin-top:20px; border-top:1px solid #eee; padding-top:10px;">
+        <div id="me" style="font-weight:bold; margin-bottom:10px;">Not logged in</div>
+        <button id="logoutBtn" onclick="logout()" disabled style="width:100%; background-color:#718096; margin-top:0;">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentUser = null;
+    const API_BASE = new URLSearchParams(location.search).get('api') || (window.API_BASE || '');
+
+    const api = (path, opts={}) =>
+      fetch(`${API_BASE}${path}`, Object.assign({credentials:"include", headers:{"Content-Type":"application/json"}}, opts));
+
+    function openLogin() {
+      document.getElementById('loginModal').style.display = 'block';
+      document.getElementById('modalTitle').innerText = 'Login';
+      document.getElementById('registerFields').style.display = 'none';
+      document.getElementById('btnLogin').style.display = 'block';
+      document.getElementById('btnRegister').style.display = 'none';
+      document.getElementById('email').focus();
+    }
+
+    function openRegister(role) {
+      document.getElementById('loginModal').style.display = 'block';
+      document.getElementById('modalTitle').innerText = 'Register';
+      document.getElementById('registerFields').style.display = 'block';
+      document.getElementById('btnLogin').style.display = 'none';
+      document.getElementById('btnRegister').style.display = 'block';
+      if(role) document.getElementById('role').value = role;
+      document.getElementById('email').focus();
+    }
+
+    function closeLogin() {
+      document.getElementById('loginModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+      if (event.target == document.getElementById('loginModal')) {
+        closeLogin();
+      }
+    }
+
+    async function fetchMe() {
+      const res = await api('/api/me');
+      const data = await res.json();
+      currentUser = data.user;
+      me.textContent = currentUser ? `Logged in as ${currentUser.name} (${currentUser.role})` : 'Not logged in';
+      toggleForms(currentUser);
+    }
+
+    async function initHospitals() {
+      const res = await api('/api/hospitals');
+      if (!res.ok) {
+        const msg = (await res.json())?.error || res.statusText;
+        alert(`Failed to load hospitals: ${msg}`);
+        return;
+      }
+      const hospitals = await res.json();
+      for (const id of ['hospitalSelect','requestHospitalFilter','caregiverHospitalFilter','reqHospital']) {
+        const el = document.getElementById(id);
+        el.innerHTML = '<option value=\"\">All hospitals</option>';
+        hospitals.forEach(h => {
+          const o = document.createElement('option');
+          o.value = h.id; o.textContent = h.name;
+          el.appendChild(o.cloneNode(true));
+        });
+      }
+      // keep reqHospital single-select without "all"
+      document.getElementById('reqHospital').remove(0);
+    }
+
+    const val = (id) => document.getElementById(id).value.trim();
+
+    async function register() {
+      const hospital_ids = Array.from(document.getElementById('hospitalSelect').selectedOptions).map(o=>Number(o.value));
+      const body = {
+        email: val('email'),
+        password: val('password'),
+        name: val('name'),
+        role: document.getElementById('role').value,
+        hospital_ids,
+      };
+      const res = await api('/api/register',{method:'POST',body:JSON.stringify(body)});
+      const data = await res.json();
+      currentUser = res.ok ? data.user : null;
+      me.textContent = res.ok ? `Logged in as ${data.user.name} (${data.user.role})` : data.error;
+      toggleForms(currentUser);
+      loadRequests(); loadCaregivers();
+    }
+
+    async function login() {
+      const res = await api('/api/login',{method:'POST',body:JSON.stringify({email:val('email'),password:val('password')})});
+      const data = await res.json();
+      currentUser = res.ok ? data.user : null;
+      me.textContent = res.ok ? `Logged in as ${data.user.name} (${data.user.role})` : data.error;
+      toggleForms(currentUser);
+      loadRequests(); loadCaregivers();
+    }
+
+    async function logout() {
+      await api('/api/logout',{method:'POST'});
+      currentUser = null;
+      me.textContent = 'Not logged in';
+      toggleForms(null);
+      loadRequests(); loadCaregivers();
+    }
+
+    function toggleForms(user) {
+      document.getElementById('requestForm').style.display = user && user.role==='seeker' ? 'block':'none';
+      document.getElementById('logoutBtn').disabled = !user;
+    }
+
+    async function createRequest() {
+      const body = { title:reqTitle.value, description:reqDesc.value, hospital_id:Number(reqHospital.value) };
+      const res = await api('/api/care-requests',{method:'POST',body:JSON.stringify(body)});
+      const data = await res.json();
+      alert(res.ok ? 'Posted!' : data.error);
+      loadRequests();
+    }
+
+    async function loadRequests() {
+      const hospital_id = requestHospitalFilter.value;
+      const res = await api(`/api/care-requests${hospital_id?`?hospital_id=${hospital_id}`:''}`);
+      const items = await res.json();
+      requests.innerHTML = items.map(r => {
+        const accepted = r.accepted_by || [];
+        const acceptedHtml = accepted.length
+          ? accepted.map(a => {
+              const cg = a.caregiver;
+              const canReject = currentUser && currentUser.role === 'seeker' && currentUser.id === r.seeker.id;
+              return `<div class="pill">${cg.name} (${a.status})</div>
+                ${canReject ? `<button onclick="reject(${r.id}, ${a.acceptance_id})">Reject</button>` : ''}`;
+            }).join('')
+          : '<span class="pill">No acceptances yet</span>';
+        return `
+          <div class="card">
+            <div><strong>${r.title}</strong></div>
+            <div>${r.description}</div>
+            <div><span class="pill">${r.hospital.name}</span> status: ${r.status}</div>
+            ${currentUser && currentUser.role === 'caregiver' ? `<button onclick="accept(${r.id})">Accept</button>` : ''}
+            <div>Accepted by: ${acceptedHtml}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function accept(id) {
+      const res = await api(`/api/care-requests/${id}/accept`,{method:'POST'});
+      const data = await res.json();
+      alert(res.ok ? 'Accepted' : data.error);
+      loadRequests();
+    }
+
+    async function reject(requestId, acceptanceId) {
+      const res = await api(`/api/care-requests/${requestId}/reject`,{
+        method:'POST',
+        body: JSON.stringify({ acceptance_id: acceptanceId })
+      });
+      const data = await res.json();
+      alert(res.ok ? 'Rejected' : data.error);
+      loadRequests();
+    }
+
+    async function loadCaregivers() {
+      const hospital_id = caregiverHospitalFilter.value;
+      const res = await api(`/api/caregivers${hospital_id?`?hospital_id=${hospital_id}`:''}`);
+      const items = await res.json();
+      caregivers.innerHTML = items.map(c => `
+        <div class="card">
+          <div><strong>${c.name}</strong> <span class="pill">${c.role}</span></div>
+          <div>${c.bio || ''}</div>
+          <div>${(c.hospitals||[]).map(h=>`<span class="pill">${h.name}</span>`).join('')}</div>
+          <div>${c.phone||''}</div>
+        </div>
+      `).join('');
+    }
+
+    initHospitals().then(()=>{ fetchMe().then(()=>{ loadRequests(); loadCaregivers(); }); });
+  </script>
+</body>
+</html>
