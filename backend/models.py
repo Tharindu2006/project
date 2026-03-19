@@ -45,6 +45,7 @@ class User(db.Model):
             "id": self.id,
             "name": self.name,
             "role": self.role,
+            "email": self.email,
             "phone": self.phone,
             "bio": self.bio,
         }

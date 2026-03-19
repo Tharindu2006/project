@@ -14,3 +14,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 # Cookie settings: defaults favor same-origin local dev so sessions stick.
 SESSION_COOKIE_SAMESITE = os.environ.get("SESSION_COOKIE_SAMESITE", "Lax")
 SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "False").lower() == "true"
+
+# Admin bootstrap credentials (edit these manually as needed)
+ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "admin@gmail.com")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin123")

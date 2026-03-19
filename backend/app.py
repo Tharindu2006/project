@@ -5,6 +5,19 @@ from . import config
 from .models import Acceptance, CareRequest, Hospital, User, db
 
 
+class AdminUser:
+    """Lightweight admin representation that is not stored in the DB."""
+
+    def __init__(self):
+        self.id = 0
+        self.name = "Administrator"
+        self.email = config.ADMIN_EMAIL
+        self.role = "admin"
+
+    def to_public_dict(self):
+        return {"id": self.id, "name": self.name, "role": self.role, "email": self.email}
+
+
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config)
@@ -60,9 +73,17 @@ def create_app():
     @app.route("/api/login", methods=["POST"])
     def login():
         data = request.get_json(force=True)
+
+        # Admin login bypasses DB users
+        if data.get("email") == config.ADMIN_EMAIL and data.get("password") == config.ADMIN_PASSWORD:
+            session.clear()
+            session["is_admin"] = True
+            return jsonify({"user": AdminUser().to_public_dict()})
+
         user = User.query.filter_by(email=data.get("email")).first()
         if not user or not user.check_password(data.get("password", "")):
             return jsonify({"error": "Invalid credentials"}), 401
+        session["is_admin"] = False
         session["user_id"] = user.id
         return jsonify({"user": user.to_public_dict()})
 
@@ -135,6 +156,37 @@ def create_app():
         db.session.commit()
         return jsonify(care_request.to_dict())
 
+    @app.route("/api/admin/care-requests/<int:request_id>", methods=["DELETE"])
+    def admin_delete_request(request_id: int):
+        user = current_user()
+        if not user or user.role != "admin":
+            return jsonify({"error": "Admin only"}), 403
+
+        care_request = CareRequest.query.get(request_id)
+        if not care_request:
+            return jsonify({"error": "Not found"}), 404
+
+        Acceptance.query.filter_by(request_id=request_id).delete()
+        db.session.delete(care_request)
+        db.session.commit()
+        return jsonify({"ok": True})
+
+    @app.route("/api/admin/caregivers/<int:caregiver_id>", methods=["DELETE"])
+    def admin_delete_caregiver(caregiver_id: int):
+        user = current_user()
+        if not user or user.role != "admin":
+            return jsonify({"error": "Admin only"}), 403
+
+        caregiver = User.query.get(caregiver_id)
+        if not caregiver or caregiver.role != "caregiver":
+            return jsonify({"error": "Caregiver not found"}), 404
+
+        Acceptance.query.filter_by(caregiver_id=caregiver_id).delete()
+        caregiver.hospitals.clear()
+        db.session.delete(caregiver)
+        db.session.commit()
+        return jsonify({"ok": True})
+
     @app.route("/api/care-requests/<int:request_id>/reject", methods=["POST"])
     def reject_acceptance(request_id: int):
         user = current_user()
@@ -164,6 +216,35 @@ def create_app():
         db.session.commit()
         return jsonify(care_request.to_dict())
 
+    @app.route("/api/care-requests/<int:request_id>/approve", methods=["POST"])
+    def approve_acceptance(request_id: int):
+        user = current_user()
+        if not user or user.role != "seeker":
+            return jsonify({"error": "Login as person in need"}), 401
+
+        care_request = CareRequest.query.get_or_404(request_id)
+        if care_request.seeker_id != user.id:
+            return jsonify({"error": "Not your request"}), 403
+
+        data = request.get_json(force=True)
+        acceptance_id = data.get("acceptance_id")
+        caregiver_id = data.get("caregiver_id")
+
+        query = Acceptance.query.filter_by(request_id=request_id)
+        if acceptance_id:
+            query = query.filter_by(id=acceptance_id)
+        if caregiver_id:
+            query = query.filter_by(caregiver_id=caregiver_id)
+
+        acceptance = query.first()
+        if not acceptance:
+            return jsonify({"error": "Acceptance not found"}), 404
+
+        acceptance.status = "accepted"
+        care_request.status = "accepted"
+        db.session.commit()
+        return jsonify(care_request.to_dict())
+
     @app.route("/api/me", methods=["GET"])
     def whoami():
         user = current_user()
@@ -171,10 +252,19 @@ def create_app():
             return jsonify({"user": None})
         return jsonify({"user": user.to_public_dict()})
 
+    @app.route("/admin")
+    def admin_portal():
+        user = current_user()
+        if not user or user.role != "admin":
+            return render_template("index.html")
+        return render_template("admin.html")
+
     return app
 
 
 def current_user():
+    if session.get("is_admin"):
+        return AdminUser()
     user_id = session.get("user_id")
     if not user_id:
         return None
