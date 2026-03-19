@@ -12,6 +12,11 @@
     .navbar h1 { margin: 0; font-size: 24px; color: #004b8d; }
     .nav-links a { text-decoration: none; color: #555; margin-left: 20px; font-weight: 600; font-size: 14px; text-transform: uppercase; cursor: pointer; }
     .nav-links a:hover { color: #004b8d; }
+    .login-area { display: flex; align-items: center; gap: 12px; margin-left: 20px; }
+    .login-link { text-decoration: none; color: #004b8d; font-weight: 700; border: 1px solid #004b8d; padding: 8px 14px; border-radius: 20px; text-transform: uppercase; font-size: 13px; transition: all 0.2s ease; cursor: pointer; }
+    .login-link:hover { background: #004b8d; color: #fff; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #004b8d, #0ea5e9); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; letter-spacing: 0.5px; }
+    .hidden { display: none !important; }
 
     /* Hero Section */
     .hero { 
@@ -63,10 +68,16 @@
 <body>
   <nav class="navbar">
     <h1>Care Connect</h1>
-    <div class="nav-links">
-      <a href="#requests-section">Requests</a>
-      <a href="#caregivers-section">Caregivers</a>
-      <a onclick="openLogin()">Login</a>
+    <div style="display:flex; align-items:center;">
+      <div class="nav-links">
+        <a href="#requests-section" class="hidden">Requests</a>
+        <a href="#caregivers-section" class="hidden">Caregivers</a>
+        <a id="adminPortalLink" href="/admin" class="hidden">Admin Portal</a>
+      </div>
+      <div class="login-area">
+        <a id="loginLink" class="login-link" onclick="openLogin()">Login</a>
+        <div id="userAvatar" class="avatar hidden" title="Account" onclick="openLogin()"></div>
+      </div>
     </div>
   </nav>
 
@@ -83,7 +94,7 @@
 
   <div id="app" class="container">
     <div class="grid-row">
-      <section id="requests-section">
+      <section id="requests-section" class="hidden">
         <h2>People Asking for Care</h2>
         <label>Filter by hospital</label>
         <select id="requestHospitalFilter" onchange="loadRequests()"></select>
@@ -97,7 +108,7 @@
         </div>
       </section>
 
-      <section id="caregivers-section">
+      <section id="caregivers-section" class="hidden">
         <h2>Caregivers</h2>
         <label>Filter by hospital</label>
         <select id="caregiverHospitalFilter" onchange="loadCaregivers()"></select>
@@ -173,11 +184,42 @@
       }
     }
 
+    function setAuthenticatedUI(user) {
+      const isAuthed = !!user;
+      document.querySelectorAll('#requests-section, #caregivers-section').forEach(el => el.classList.toggle('hidden', !isAuthed));
+      document.querySelectorAll('.nav-links a').forEach(link => {
+        if (link.id === 'adminPortalLink') {
+          link.classList.toggle('hidden', !(user && user.role === 'admin'));
+        } else {
+          link.classList.toggle('hidden', !isAuthed);
+        }
+      });
+      const loginLink = document.getElementById('loginLink');
+      const avatar = document.getElementById('userAvatar');
+      loginLink.classList.toggle('hidden', isAuthed);
+      if (isAuthed) {
+        const initial = (user.name || user.email || '?').trim().charAt(0).toUpperCase() || '?';
+        avatar.textContent = initial;
+        avatar.classList.remove('hidden');
+      } else {
+        avatar.textContent = '';
+        avatar.classList.add('hidden');
+      }
+    }
+
+    const params = new URLSearchParams(location.search);
+    const skipAdminRedirect = params.get('noadmin') === '1';
+
     async function fetchMe() {
       const res = await api('/api/me');
       const data = await res.json();
       currentUser = data.user;
+      if (currentUser && currentUser.role === 'admin' && !skipAdminRedirect) {
+        window.location.href = '/admin';
+        return;
+      }
       me.textContent = currentUser ? `Logged in as ${currentUser.name} (${currentUser.role})` : 'Not logged in';
+      setAuthenticatedUI(currentUser);
       toggleForms(currentUser);
     }
 
@@ -217,6 +259,9 @@
       const data = await res.json();
       currentUser = res.ok ? data.user : null;
       me.textContent = res.ok ? `Logged in as ${data.user.name} (${data.user.role})` : data.error;
+      if (res.ok && data.user.role === 'admin') { window.location.href = '/admin'; return; }
+      if (res.ok) closeLogin();
+      setAuthenticatedUI(currentUser);
       toggleForms(currentUser);
       loadRequests(); loadCaregivers();
     }
@@ -226,6 +271,9 @@
       const data = await res.json();
       currentUser = res.ok ? data.user : null;
       me.textContent = res.ok ? `Logged in as ${data.user.name} (${data.user.role})` : data.error;
+      if (res.ok && data.user.role === 'admin') { window.location.href = '/admin'; return; }
+      if (res.ok) closeLogin();
+      setAuthenticatedUI(currentUser);
       toggleForms(currentUser);
       loadRequests(); loadCaregivers();
     }
@@ -252,6 +300,10 @@
     }
 
     async function loadRequests() {
+      if (!currentUser) {
+        requests.innerHTML = '<div class="card">Login to view requests.</div>';
+        return;
+      }
       const hospital_id = requestHospitalFilter.value;
       const res = await api(`/api/care-requests${hospital_id?`?hospital_id=${hospital_id}`:''}`);
       const items = await res.json();
@@ -260,9 +312,13 @@
         const acceptedHtml = accepted.length
           ? accepted.map(a => {
               const cg = a.caregiver;
-              const canReject = currentUser && currentUser.role === 'seeker' && currentUser.id === r.seeker.id;
-              return `<div class="pill">${cg.name} (${a.status})</div>
-                ${canReject ? `<button onclick="reject(${r.id}, ${a.acceptance_id})">Reject</button>` : ''}`;
+              const canAct = currentUser && currentUser.role === 'seeker' && currentUser.id === r.seeker.id;
+              const actionBtn = !canAct
+                ? ''
+                : a.status === 'rejected'
+                  ? `<button onclick="approve(${r.id}, ${a.acceptance_id})">Approve</button>`
+                  : `<button onclick="reject(${r.id}, ${a.acceptance_id})">Reject</button>`;
+              return `<div class="pill">${cg.name} (${a.status})</div>${actionBtn}`;
             }).join('')
           : '<span class="pill">No acceptances yet</span>';
         return `
@@ -294,7 +350,21 @@
       loadRequests();
     }
 
+    async function approve(requestId, acceptanceId) {
+      const res = await api(`/api/care-requests/${requestId}/approve`,{
+        method:'POST',
+        body: JSON.stringify({ acceptance_id: acceptanceId })
+      });
+      const data = await res.json();
+      alert(res.ok ? 'Approved' : data.error);
+      loadRequests();
+    }
+
     async function loadCaregivers() {
+      if (!currentUser) {
+        caregivers.innerHTML = '<div class="card">Login to view caregivers.</div>';
+        return;
+      }
       const hospital_id = caregiverHospitalFilter.value;
       const res = await api(`/api/caregivers${hospital_id?`?hospital_id=${hospital_id}`:''}`);
       const items = await res.json();
