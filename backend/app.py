@@ -96,6 +96,26 @@ def create_app():
     def list_hospitals():
         return jsonify([h.to_dict() for h in Hospital.query.order_by(Hospital.name)])
 
+    @app.route("/api/admin/hospitals", methods=["POST"])
+    def admin_add_hospital():
+        user = current_user()
+        if not user or user.role != "admin":
+            return jsonify({"error": "Admin only"}), 403
+
+        data = request.get_json(force=True)
+        name = (data.get("name") or "").strip()
+        if not name:
+            return jsonify({"error": "Hospital name is required"}), 400
+
+        existing = Hospital.query.filter_by(name=name).first()
+        if existing:
+            return jsonify({"error": "Hospital already exists"}), 409
+
+        hospital = Hospital(name=name)
+        db.session.add(hospital)
+        db.session.commit()
+        return jsonify(hospital.to_dict()), 201
+
     @app.route("/api/caregivers", methods=["GET"])
     def list_caregivers():
         hospital_id = request.args.get("hospital_id", type=int)

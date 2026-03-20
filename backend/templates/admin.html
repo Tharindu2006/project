@@ -8,7 +8,7 @@
     header { background:#0f3f7a; color:white; padding:16px 24px; display:flex; justify-content:space-between; align-items:center; }
     h1 { margin:0; font-size:22px; }
     a { color:#0f3f7a; text-decoration:none; }
-    .container { max-width: 1200px; margin: 24px auto; padding: 0 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .container { max-width: 1200px; margin: 24px auto; padding: 0 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; align-items: start; }
     section { background:white; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.05); padding:20px; }
     section h2 { margin-top:0; border-bottom:1px solid #e2e8f0; padding-bottom:10px; }
     .card { border:1px solid #e2e8f0; border-radius:10px; padding:12px; margin-bottom:12px; background:#f8fafc; }
@@ -34,6 +34,17 @@
     <section>
       <h2>Caregivers</h2>
       <div id="caregivers"></div>
+    </section>
+    <section>
+      <h2>Hospitals</h2>
+      <form onsubmit="event.preventDefault(); addHospital();">
+        <label for="hospitalName" style="font-weight:600; color:#2d3748;">Add a hospital</label>
+        <div style="display:flex; gap:8px; margin-top:6px;">
+          <input id="hospitalName" placeholder="e.g., Sunrise Medical Center" style="flex:1; padding:10px; border:1px solid #e2e8f0; border-radius:8px;" />
+          <button type="submit">Add</button>
+        </div>
+      </form>
+      <div id="hospitals" style="margin-top:14px;"></div>
     </section>
   </div>
 
@@ -69,6 +80,26 @@
       `).join('') || 'No caregivers';
     }
 
+    async function loadHospitals() {
+      const res = await api('/api/hospitals');
+      if(!res.ok) { hospitals.innerHTML = 'Failed to load hospitals.'; return; }
+      const items = await res.json();
+      hospitals.innerHTML = items.map(h => `
+        <div class="card"><strong>${h.name}</strong></div>
+      `).join('') || 'No hospitals yet';
+    }
+
+    async function addHospital() {
+      const name = hospitalName.value.trim();
+      if(!name) { alert('Enter a hospital name'); return; }
+      const res = await api('/api/admin/hospitals', { method:'POST', body: JSON.stringify({ name }) });
+      const data = await res.json();
+      if(!res.ok) { alert(data.error || 'Failed to add hospital'); return; }
+      hospitalName.value = '';
+      loadHospitals();
+      alert('Hospital added');
+    }
+
     async function deleteRequest(id) {
       if(!confirm('Delete this request?')) return;
       const res = await api(`/api/admin/care-requests/${id}`, { method:'DELETE' });
@@ -90,6 +121,7 @@
 
     loadRequests();
     loadCaregivers();
+    loadHospitals();
   </script>
 </body>
 </html>

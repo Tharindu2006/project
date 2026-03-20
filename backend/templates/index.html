@@ -12,11 +12,16 @@
     .navbar h1 { margin: 0; font-size: 24px; color: #004b8d; }
     .nav-links a { text-decoration: none; color: #555; margin-left: 20px; font-weight: 600; font-size: 14px; text-transform: uppercase; cursor: pointer; }
     .nav-links a:hover { color: #004b8d; }
-    .login-area { display: flex; align-items: center; gap: 12px; margin-left: 20px; }
+    .login-area { display: flex; align-items: center; gap: 12px; margin-left: 20px; position: relative; }
     .login-link { text-decoration: none; color: #004b8d; font-weight: 700; border: 1px solid #004b8d; padding: 8px 14px; border-radius: 20px; text-transform: uppercase; font-size: 13px; transition: all 0.2s ease; cursor: pointer; }
     .login-link:hover { background: #004b8d; color: #fff; }
-    .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #004b8d, #0ea5e9); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; letter-spacing: 0.5px; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #004b8d, #0ea5e9); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; letter-spacing: 0.5px; cursor: pointer; }
     .hidden { display: none !important; }
+    .account-menu { position: absolute; top: 48px; right: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.12); min-width: 200px; padding: 12px; z-index: 1100; }
+    .account-menu h4 { margin: 0 0 6px 0; font-size: 14px; color: #1a202c; }
+    .account-menu small { color: #718096; display: block; margin-bottom: 10px; }
+    .account-menu button, .account-menu a { width: 100%; display: block; text-align: left; background: #f7fafc; color: #1a202c; border: 1px solid #edf2f7; border-radius: 8px; padding: 10px 12px; margin-top: 6px; text-decoration: none; font-weight: 600; cursor: pointer; transition: background 0.15s; box-sizing: border-box; }
+    .account-menu button:hover, .account-menu a:hover { background: #e6efff; }
 
     /* Hero Section */
     .hero { 
@@ -76,7 +81,13 @@
       </div>
       <div class="login-area">
         <a id="loginLink" class="login-link" onclick="openLogin()">Login</a>
-        <div id="userAvatar" class="avatar hidden" title="Account" onclick="openLogin()"></div>
+        <div id="userAvatar" class="avatar hidden" title="Account"></div>
+        <div id="accountMenu" class="account-menu hidden">
+          <h4 id="accountName">Your account</h4>
+          <small id="accountEmail"></small>
+          <a href="#" onclick="openSettings(event)">Settings</a>
+          <button onclick="logout()">Logout</button>
+        </div>
       </div>
     </div>
   </nav>
@@ -156,6 +167,7 @@
       fetch(`${API_BASE}${path}`, Object.assign({credentials:"include", headers:{"Content-Type":"application/json"}}, opts));
 
     function openLogin() {
+      closeAccountMenu();
       document.getElementById('loginModal').style.display = 'block';
       document.getElementById('modalTitle').innerText = 'Login';
       document.getElementById('registerFields').style.display = 'none';
@@ -182,6 +194,9 @@
       if (event.target == document.getElementById('loginModal')) {
         closeLogin();
       }
+      if (!document.querySelector('.login-area').contains(event.target)) {
+        closeAccountMenu();
+      }
     }
 
     function setAuthenticatedUI(user) {
@@ -201,9 +216,14 @@
         const initial = (user.name || user.email || '?').trim().charAt(0).toUpperCase() || '?';
         avatar.textContent = initial;
         avatar.classList.remove('hidden');
+        avatar.onclick = toggleAccountMenu;
+        accountName.textContent = user.name || 'Your account';
+        accountEmail.textContent = user.email || '';
       } else {
         avatar.textContent = '';
         avatar.classList.add('hidden');
+        avatar.onclick = null;
+        closeAccountMenu();
       }
     }
 
@@ -283,7 +303,27 @@
       currentUser = null;
       me.textContent = 'Not logged in';
       toggleForms(null);
-      loadRequests(); loadCaregivers();
+      closeAccountMenu();
+      closeLogin();
+      setAuthenticatedUI(null);
+      requests.innerHTML = '<div class="card">Login to view requests.</div>';
+      caregivers.innerHTML = '<div class="card">Login to view caregivers.</div>';
+      // Return to the public landing state
+      window.location.href = '/?noadmin=1';
+    }
+
+    function toggleAccountMenu() {
+      const menu = document.getElementById('accountMenu');
+      menu.classList.toggle('hidden');
+    }
+
+    function closeAccountMenu() {
+      document.getElementById('accountMenu').classList.add('hidden');
+    }
+
+    function openSettings(e) {
+      e.preventDefault();
+      alert('Settings coming soon.');
     }
 
     function toggleForms(user) {
