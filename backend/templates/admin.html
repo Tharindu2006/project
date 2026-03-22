@@ -64,8 +64,11 @@
         <div class="card">
           <div><strong>${r.title}</strong></div>
           <div>${r.description}</div>
-          <div><span class="pill">${r.hospital?.name || ''}</span> <span class="pill">${r.status}</span></div>
-          <button class="danger" onclick="deleteRequest(${r.id})">Delete Request</button>
+          <div><span class="pill">${r.hospital?.name || ''}</span> <span class="pill">${r.status}</span> <span class="pill" style="background:${r.is_approved?'#e6fffa':'#fff5f5'};color:${r.is_approved?'#0b6459':'#9b2c2c'};">${r.is_approved?'Approved':'Pending'}</span></div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+            ${r.is_approved ? '' : `<button onclick="approveRequest(${r.id})">Approve</button>`}
+            <button class="danger" onclick="deleteRequest(${r.id})">Delete Request</button>
+          </div>
         </div>
       `).join('') || 'No requests';
     }
@@ -125,6 +128,13 @@
       if(!confirm('Delete this request?')) return;
       const res = await api(`/api/admin/care-requests/${id}`, { method:'DELETE' });
       alert(res.ok ? 'Deleted' : 'Failed');
+      loadRequests();
+    }
+
+    async function approveRequest(id) {
+      const res = await api(`/api/admin/care-requests/${id}/approve`, { method:'POST' });
+      const data = await res.json();
+      alert(res.ok ? 'Approved' : (data.error || 'Failed'));
       loadRequests();
     }
 

@@ -66,6 +66,7 @@ class CareRequest(db.Model):
     hospital_id = db.Column(db.Integer, db.ForeignKey("hospitals.id"), nullable=False)
     seeker_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     status = db.Column(db.String(20), default="open", nullable=False)
+    is_approved = db.Column(db.Boolean, default=False, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     hospital = db.relationship("Hospital", lazy="joined")
@@ -79,6 +80,7 @@ class CareRequest(db.Model):
             "hospital": self.hospital.to_dict() if self.hospital else None,
             "seeker": {"id": self.seeker.id, "name": self.seeker.name} if self.seeker else None,
             "status": self.status,
+            "is_approved": self.is_approved,
             "created_at": self.created_at.isoformat(),
             "accepted_by": [
                 {

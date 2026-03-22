@@ -384,6 +384,20 @@ button:disabled {
     background: #aaa;
 }
 
+/* Caregiver list: show exactly two cards at a time with horizontal scroll for the rest */
+#caregivers {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-columns: none; /* disable default auto-fit columns */
+    grid-auto-columns: calc(50% - 0.5rem); /* 2 visible cards including gap */
+    grid-template-rows: 1fr;
+    overflow-x: auto;
+    overflow-y: hidden;
+    max-height: none;
+    padding-bottom: 0.75rem;
+    scroll-snap-type: x proximity;
+}
+
 .card {
     background: #fff;
     border: 1px solid #eee;

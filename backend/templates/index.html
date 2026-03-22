@@ -356,6 +356,7 @@
       const res = await api(`/api/care-requests${hospital_id?`?hospital_id=${hospital_id}`:''}`);
       const items = await res.json();
       requests.innerHTML = items.map(r => {
+        const isOwner = currentUser && currentUser.role === 'seeker' && currentUser.id === r.seeker.id;
         const accepted = r.accepted_by || [];
         const acceptedHtml = accepted.length
           ? accepted.map(a => {
@@ -369,16 +370,47 @@
               return `<div class="pill">${cg.name} (${a.status})</div>${actionBtn}`;
             }).join('')
           : '<span class="pill">No acceptances yet</span>';
+        const approvalPill = r.is_approved ? '<span class="pill" style="background:#e6fffa;color:#0b6459;">Approved</span>' : '<span class="pill" style="background:#fff5f5;color:#9b2c2c;">Pending admin</span>';
+        const editBtn = r.is_approved ? '' : `<button onclick='editRequest(${r.id}, ${JSON.stringify(r.title)}, ${JSON.stringify(r.description)})'>Edit</button>`;
+        const ownerActions = !isOwner ? '' : `
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+            <button onclick="deleteOwnRequest(${r.id})" style="background:#e53e3e;">Delete</button>
+            ${editBtn}
+          </div>
+        `;
         return `
           <div class="card">
             <div><strong>${r.title}</strong></div>
             <div>${r.description}</div>
-            <div><span class="pill">${r.hospital.name}</span> status: ${r.status}</div>
+            <div><span class="pill">${r.hospital.name}</span> status: ${r.status} ${approvalPill}</div>
             ${currentUser && currentUser.role === 'caregiver' ? `<button onclick="accept(${r.id})">Accept</button>` : ''}
             <div>Accepted by: ${acceptedHtml}</div>
+            ${ownerActions}
           </div>
         `;
       }).join('');
+    }
+
+    async function editRequest(id, title, description) {
+      const newTitle = prompt('Update title', title);
+      if (newTitle === null) return;
+      const newDesc = prompt('Update description', description);
+      if (newDesc === null) return;
+      const res = await api(`/api/care-requests/${id}`, {
+        method:'PUT',
+        body: JSON.stringify({ title: newTitle.trim(), description: newDesc.trim() })
+      });
+      const data = await res.json();
+      alert(res.ok ? 'Updated' : (data.error || 'Failed to update'));
+      loadRequests();
+    }
+
+    async function deleteOwnRequest(id) {
+      if (!confirm('Delete this request?')) return;
+      const res = await api(`/api/care-requests/${id}`, { method:'DELETE' });
+      const data = await res.json().catch(()=>({}));
+      alert(res.ok ? 'Deleted' : (data.error || 'Failed to delete'));
+      loadRequests();
     }
 
     async function accept(id) {

@@ -10,7 +10,7 @@ import os
 
 from flask import Flask, jsonify, render_template, request, session, send_from_directory, url_for
 from flask_cors import CORS
-from sqlalchemy import inspect, text
+from sqlalchemy import inspect, or_, text
 from werkzeug.utils import secure_filename
 
 from . import config
@@ -171,11 +171,18 @@ def create_app():
 
     @app.route("/api/care-requests", methods=["GET"])
     def list_requests():
+        user = current_user()
         hospital_id = request.args.get("hospital_id", type=int)
         query = CareRequest.query.order_by(CareRequest.created_at.desc())
         if hospital_id:
             query = query.filter_by(hospital_id=hospital_id)
-        return jsonify([r.to_dict() for r in query.all()])
+        if isinstance(user, AdminUser):
+            filtered = query
+        elif user and user.role == "seeker":
+            filtered = query.filter(or_(CareRequest.is_approved.is_(True), CareRequest.seeker_id == user.id))
+        else:
+            filtered = query.filter_by(is_approved=True)
+        return jsonify([r.to_dict() for r in filtered.all()])
 
     @app.route("/api/care-requests", methods=["POST"])
     def create_request():
@@ -202,6 +209,47 @@ def create_app():
         db.session.commit()
         return jsonify(care_request.to_dict()), 201
 
+    @app.route("/api/care-requests/<int:request_id>", methods=["PUT"])
+    def update_request(request_id: int):
+        user = current_user()
+        if not user or user.role != "seeker":
+            return jsonify({"error": "Login as person in need"}), 401
+        if not user.is_approved:
+            return jsonify({"error": "Account pending admin approval."}), 403
+
+        care_request = CareRequest.query.get_or_404(request_id)
+        if care_request.seeker_id != user.id:
+            return jsonify({"error": "Not your request"}), 403
+        if care_request.is_approved:
+            return jsonify({"error": "Cannot edit after admin approval"}), 400
+
+        data = request.get_json(force=True)
+        if "title" in data:
+            care_request.title = data["title"]
+        if "description" in data:
+            care_request.description = data["description"]
+        if "hospital_id" in data:
+            hospital = Hospital.query.get(data["hospital_id"])
+            if not hospital:
+                return jsonify({"error": "Invalid hospital"}), 400
+            care_request.hospital_id = hospital.id
+        db.session.commit()
+        return jsonify(care_request.to_dict())
+
+    @app.route("/api/care-requests/<int:request_id>", methods=["DELETE"])
+    def delete_request(request_id: int):
+        user = current_user()
+        care_request = CareRequest.query.get_or_404(request_id)
+
+        is_owner = user and not isinstance(user, AdminUser) and user.role == "seeker" and care_request.seeker_id == user.id
+        if not (is_owner or isinstance(user, AdminUser)):
+            return jsonify({"error": "Not authorized"}), 403
+
+        Acceptance.query.filter_by(request_id=request_id).delete()
+        db.session.delete(care_request)
+        db.session.commit()
+        return jsonify({"ok": True})
+
     @app.route("/api/care-requests/<int:request_id>/accept", methods=["POST"])
     def accept_request(request_id: int):
         user = current_user()
@@ -213,6 +261,8 @@ def create_app():
         care_request = CareRequest.query.get_or_404(request_id)
         if care_request.status != "open":
             return jsonify({"error": "Request already handled"}), 400
+        if not care_request.is_approved:
+            return jsonify({"error": "Request not yet approved by admin"}), 403
 
         acceptance = Acceptance.query.filter_by(request_id=request_id, caregiver_id=user.id).first()
         if acceptance:
@@ -238,6 +288,25 @@ def create_app():
         db.session.delete(care_request)
         db.session.commit()
         return jsonify({"ok": True})
+
+    @app.route("/api/admin/care-requests/pending", methods=["GET"])
+    def admin_pending_requests():
+        user = current_user()
+        if not user or user.role != "admin":
+            return jsonify({"error": "Admin only"}), 403
+        pending = CareRequest.query.filter_by(is_approved=False).order_by(CareRequest.created_at.desc()).all()
+        return jsonify([r.to_dict() for r in pending])
+
+    @app.route("/api/admin/care-requests/<int:request_id>/approve", methods=["POST"])
+    def admin_approve_request(request_id: int):
+        user = current_user()
+        if not user or user.role != "admin":
+            return jsonify({"error": "Admin only"}), 403
+
+        care_request = CareRequest.query.get_or_404(request_id)
+        care_request.is_approved = True
+        db.session.commit()
+        return jsonify({"ok": True, "request": care_request.to_dict()})
 
     @app.route("/api/admin/caregivers/<int:caregiver_id>", methods=["DELETE"])
     def admin_delete_caregiver(caregiver_id: int):
@@ -364,18 +433,23 @@ def create_app():
 
 
 def ensure_approval_column(engine):
-    """Ensure is_approved column exists for legacy databases without migrations."""
-    inspector = inspect(engine)
-    columns = {c["name"] for c in inspector.get_columns("users")}
-    if "is_approved" in columns:
-        return
-    dialect = engine.dialect.name
-    with engine.connect() as conn:
+    """Ensure approval-related columns exist for legacy databases without migrations."""
+
+    def add_boolean_column(table: str, column: str):
+        inspector = inspect(engine)
+        columns = {c["name"] for c in inspector.get_columns(table)}
+        if column in columns:
+            return
+        dialect = engine.dialect.name
         definition = "BOOLEAN NOT NULL DEFAULT 0"
         if dialect == "postgresql":
             definition = definition.replace("DEFAULT 0", "DEFAULT FALSE")
-        conn.execute(text(f"ALTER TABLE users ADD COLUMN is_approved {definition}"))
-        conn.commit()
+        with engine.connect() as conn:
+            conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {definition}"))
+            conn.commit()
+
+    add_boolean_column("users", "is_approved")
+    add_boolean_column("care_requests", "is_approved")
 
 
 def current_user():
