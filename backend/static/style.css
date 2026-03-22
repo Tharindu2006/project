@@ -24,6 +24,10 @@ body {
     min-height: 100vh;
     line-height: 1.6;
 }
+body.logged-out {
+    height: 100vh;
+    overflow: hidden;
+}
 
 /* Navbar */
 .navbar {
@@ -177,6 +181,10 @@ body {
     color: white;
     padding-top: 80px; /* Offset for navbar */
     margin-bottom: 0;
+}
+body:not(.logged-out) .hero {
+    flex: 0 0 auto;
+    padding-bottom: 2rem;
 }
 
 .hero-content {
@@ -592,7 +600,7 @@ button:disabled {
 footer {
     background-color: #1a202c;
     color: #e2e8f0;
-    padding: 1.5rem 2rem;
+    padding: 2.5rem 2rem;
     text-align: center;
     margin-top: auto;
 }

@@ -5,7 +5,7 @@
   <title>Care Connect</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body class="logged-out">
   <nav class="navbar">
     <h1>Care Connect</h1>
     <div style="display:flex; align-items:center;">
@@ -214,6 +214,7 @@
     function setAuthenticatedUI(user) {
       const isAuthed = !!user;
       document.querySelectorAll('#requests-section, #caregivers-section, #create-request-section').forEach(el => el.classList.toggle('hidden', !isAuthed));
+      document.body.classList.toggle('logged-out', !isAuthed);
       document.getElementById('app').classList.toggle('hidden', !isAuthed);
       document.querySelectorAll('.nav-links a').forEach(link => {
         if (link.id === 'adminPortalLink') {

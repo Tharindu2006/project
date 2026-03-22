@@ -26,7 +26,7 @@
   <header>
     <h1>Account Settings</h1>
     <div>
-      <button style="background:#edf2f7; color:#1a202c;" onclick="location.href='/'">Back</button>
+      <button style="background:#edf2f7; color:#1a202c;" onclick="goBack()">Back</button>
     </div>
   </header>
   <main>
@@ -159,6 +159,14 @@
         return;
       }
       alert('Thanks! Admin will review and add the hospital.');
+    }
+
+    function goBack() {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = '/?noadmin=1';
+      }
     }
 
     loadMe().then(loadHospitals);
