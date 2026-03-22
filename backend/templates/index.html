@@ -45,6 +45,10 @@
         <h2>People Asking for Care</h2>
         <label>Filter by hospital</label>
         <select id="requestHospitalFilter" onchange="loadRequests()"></select>
+        <div class="list-nav">
+          <button type="button" onclick="scrollList('requests', -1)">Prev</button>
+          <button type="button" onclick="scrollList('requests', 1)">Next</button>
+        </div>
         <div class="list" id="requests"></div>
       </section>
 
@@ -52,6 +56,10 @@
         <h2>Caregivers</h2>
         <label>Filter by hospital</label>
         <select id="caregiverHospitalFilter" onchange="loadCaregivers()"></select>
+        <div class="list-nav">
+          <button type="button" onclick="scrollList('caregivers', -1)">Prev</button>
+          <button type="button" onclick="scrollList('caregivers', 1)">Next</button>
+        </div>
         <div class="list" id="caregivers"></div>
       </section>
 
@@ -62,7 +70,8 @@
           <label>Title <input id="reqTitle"></label>
           <label>Description <textarea id="reqDesc"></textarea></label>
           <label>Hospital <select id="reqHospital"></select></label>
-          <button onclick="createRequest()">Post</button>
+          <button id="postBtn" onclick="createRequest()">Post</button>
+          <div id="createRequestStatus" class="pill" style="display:none; background:#fff5f5; color:#9b2c2c; margin-top:8px;">Sent for admin approval</div>
         </div>
         <div id="createRequestLocked" class="card" style="display:none; background:#fff5f5; border-color:#fed7d7;">
           <strong>Login as a seeker</strong>
@@ -123,6 +132,13 @@
 
     const api = (path, opts={}) =>
       fetch(`${API_BASE}${path}`, Object.assign({credentials:"include", headers:{"Content-Type":"application/json"}}, opts));
+
+    function scrollList(id, direction) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const step = el.clientWidth;
+      el.scrollBy({ left: direction * step, behavior: 'smooth' });
+    }
 
     function openLogin() {
       closeAccountMenu();
@@ -343,7 +359,14 @@
       const body = { title:reqTitle.value, description:reqDesc.value, hospital_id:Number(reqHospital.value) };
       const res = await api('/api/care-requests',{method:'POST',body:JSON.stringify(body)});
       const data = await res.json();
-      alert(res.ok ? 'Posted!' : data.error);
+      alert(res.ok ? 'Sent for admin approval' : data.error);
+      if (res.ok) {
+        postBtn.textContent = 'Sent for approval';
+        postBtn.disabled = true;
+        const status = document.getElementById('createRequestStatus');
+        status.style.display = 'inline-block';
+        status.textContent = 'Sent for admin approval';
+      }
       loadRequests();
     }
 
