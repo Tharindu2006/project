@@ -30,6 +30,8 @@ class User(db.Model):
     role = db.Column(db.String(20), nullable=False)  # "caregiver" or "seeker"
     phone = db.Column(db.String(50), nullable=True)
     bio = db.Column(db.Text, nullable=True)
+    profile_photo_url = db.Column(db.String(500), nullable=True)
+    is_approved = db.Column(db.Boolean, default=False, nullable=False)
 
     hospitals = db.relationship("Hospital", secondary=caregiver_hospitals, lazy="joined")
     requests = db.relationship("CareRequest", backref="seeker", lazy=True, foreign_keys="CareRequest.seeker_id")
@@ -48,6 +50,8 @@ class User(db.Model):
             "email": self.email,
             "phone": self.phone,
             "bio": self.bio,
+            "profile_photo_url": self.profile_photo_url,
+            "is_approved": self.is_approved,
         }
         if self.role == "caregiver":
             base["hospitals"] = [h.to_dict() for h in self.hospitals]

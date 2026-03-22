@@ -36,6 +36,10 @@
       <div id="caregivers"></div>
     </section>
     <section>
+      <h2>Pending Users</h2>
+      <div id="pending"></div>
+    </section>
+    <section>
       <h2>Hospitals</h2>
       <form onsubmit="event.preventDefault(); addHospital();">
         <label for="hospitalName" style="font-weight:600; color:#2d3748;">Add a hospital</label>
@@ -75,9 +79,26 @@
           <div><strong>${c.name}</strong> <span class="pill">${c.role}</span></div>
           <div>${c.email || ''}</div>
           <div>${(c.hospitals||[]).map(h=>`<span class="pill">${h.name}</span>`).join('')}</div>
-          <button class="danger" onclick="deleteCaregiver(${c.id})">Remove Caregiver</button>
+          <button class="danger" onclick="deleteUser(${c.id})">Remove Caregiver</button>
         </div>
       `).join('') || 'No caregivers';
+    }
+
+    async function loadPending() {
+      const res = await api('/api/admin/users/pending');
+      if(!res.ok) { pending.innerHTML = 'Failed to load pending users.'; return; }
+      const items = await res.json();
+      pending.innerHTML = items.map(u => `
+        <div class="card">
+          <div><strong>${u.name}</strong> <span class="pill">${u.role}</span></div>
+          <div>${u.email}</div>
+          <div>${u.phone || ''}</div>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button onclick="approveUser(${u.id})">Approve</button>
+            <button class="danger" onclick="deleteUser(${u.id})">Delete</button>
+          </div>
+        </div>
+      `).join('') || 'No pending users';
     }
 
     async function loadHospitals() {
@@ -107,10 +128,20 @@
       loadRequests();
     }
 
-    async function deleteCaregiver(id) {
-      if(!confirm('Remove this caregiver?')) return;
-      const res = await api(`/api/admin/caregivers/${id}`, { method:'DELETE' });
+    async function deleteUser(id) {
+      if(!confirm('Remove this user? This also deletes related requests/acceptances.')) return;
+      const res = await api(`/api/admin/users/${id}`, { method:'DELETE' });
       alert(res.ok ? 'Removed' : 'Failed');
+      loadPending();
+      loadCaregivers();
+      loadRequests();
+    }
+
+    async function approveUser(id) {
+      const res = await api(`/api/admin/users/${id}/approve`, { method:'POST' });
+      const data = await res.json();
+      if(!res.ok) { alert(data.error || 'Failed to approve'); return; }
+      loadPending();
       loadCaregivers();
     }
 
@@ -122,6 +153,7 @@
     loadRequests();
     loadCaregivers();
     loadHospitals();
+    loadPending();
   </script>
 </body>
 </html>

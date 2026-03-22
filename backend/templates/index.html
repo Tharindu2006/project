@@ -82,13 +82,15 @@
         <label>Password <input id="password" type="password" placeholder="********"></label>
         <div id="registerFields" style="display:none;">
           <label>Name <input id="name" placeholder="Your Name"></label>
+          <label>Phone <input id="phone" placeholder="+94 77 123 4567"></label>
           <label>Role
-            <select id="role">
+            <select id="role" onchange="updateRegisterFields()">
               <option value="seeker">Person in need</option>
               <option value="caregiver">Caregiver</option>
             </select>
           </label>
-          <label>Hospitals (for caregivers)</label>
+          <label id="profilePhotoRow" style="display:none;">Profile photo URL (caregivers) <input id="profilePhoto" placeholder="https://.../photo.jpg"></label>
+          <label id="hospitalRow">Hospitals (for caregivers)</label>
           <select id="hospitalSelect" multiple style="height:80px;"></select>
         </div>
         <div style="display:flex; gap:10px;">
@@ -132,7 +134,15 @@
       document.getElementById('btnLogin').style.display = 'none';
       document.getElementById('btnRegister').style.display = 'block';
       if(role) document.getElementById('role').value = role;
+      updateRegisterFields();
       document.getElementById('email').focus();
+    }
+
+    function updateRegisterFields() {
+      const role = document.getElementById('role').value;
+      document.getElementById('profilePhotoRow').style.display = role === 'caregiver' ? 'block' : 'none';
+      document.getElementById('hospitalRow').style.display = role === 'caregiver' ? 'block' : 'none';
+      document.getElementById('hospitalSelect').style.display = role === 'caregiver' ? 'block' : 'none';
     }
 
     function closeLogin() {
@@ -222,6 +232,8 @@
         password: val('password'),
         name: val('name'),
         role: document.getElementById('role').value,
+        phone: val('phone'),
+        profile_photo_url: val('profilePhoto'),
         hospital_ids,
       };
       const res = await api('/api/register',{method:'POST',body:JSON.stringify(body)});
@@ -373,6 +385,7 @@
       const items = await res.json();
       caregivers.innerHTML = items.map(c => `
         <div class="card">
+          ${c.profile_photo_url ? `<img class="caregiver-photo" src="${c.profile_photo_url}" alt="${c.name}">` : ''}
           <div><strong>${c.name}</strong> <span class="pill">${c.role}</span></div>
           <div>${c.bio || ''}</div>
           <div>${(c.hospitals||[]).map(h=>`<span class="pill">${h.name}</span>`).join('')}</div>

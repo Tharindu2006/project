@@ -8,6 +8,7 @@ except Exception:
 
 from flask import Flask, jsonify, render_template, request, session
 from flask_cors import CORS
+from sqlalchemy import inspect, text
 
 from . import config
 from .models import Acceptance, CareRequest, Hospital, User, db
@@ -38,6 +39,7 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+        ensure_approval_column(db.engine)
         seed_hospitals()
 
     @app.route("/")
@@ -47,12 +49,15 @@ def create_app():
     @app.route("/api/register", methods=["POST"])
     def register():
         data = request.get_json(force=True)
-        required = {"name", "email", "password", "role"}
+        required = {"name", "email", "password", "role", "phone"}
         if not required.issubset(data):
             return jsonify({"error": "Missing required fields"}), 400
 
         if data["role"] not in {"caregiver", "seeker"}:
             return jsonify({"error": "Role must be caregiver or seeker"}), 400
+
+        if not (data.get("phone") or "").strip():
+            return jsonify({"error": "Phone number is required"}), 400
 
         if User.query.filter_by(email=data["email"]).first():
             return jsonify({"error": "Email already registered"}), 409
@@ -63,10 +68,16 @@ def create_app():
             role=data["role"],
             phone=data.get("phone"),
             bio=data.get("bio"),
+            profile_photo_url=data.get("profile_photo_url"),
+            is_approved=False,
         )
         user.set_password(data["password"])
 
         if user.role == "caregiver":
+            if not user.profile_photo_url:
+                return jsonify({"error": "Profile photo URL is required for caregivers"}), 400
+            if not (data.get("phone") or "").strip():
+                return jsonify({"error": "Phone number is required for caregivers"}), 400
             hospital_ids = data.get("hospital_ids", [])
             user.hospitals = Hospital.query.filter(Hospital.id.in_(hospital_ids)).all()
             if not user.hospitals:
@@ -74,7 +85,7 @@ def create_app():
 
         db.session.add(user)
         db.session.commit()
-        return jsonify({"message": "Registration successful.", "user": user.to_public_dict()}), 201
+        return jsonify({"message": "Registration submitted. Await admin approval.", "user": user.to_public_dict()}), 201
 
     @app.route("/api/login", methods=["POST"])
     def login():
@@ -89,6 +100,9 @@ def create_app():
         user = User.query.filter_by(email=data.get("email")).first()
         if not user or not user.check_password(data.get("password", "")):
             return jsonify({"error": "Invalid credentials"}), 401
+
+        if not user.is_approved:
+            return jsonify({"error": "Account pending admin approval."}), 403
 
         session["is_admin"] = False
         session["user_id"] = user.id
@@ -126,7 +140,7 @@ def create_app():
     @app.route("/api/caregivers", methods=["GET"])
     def list_caregivers():
         hospital_id = request.args.get("hospital_id", type=int)
-        query = User.query.filter_by(role="caregiver")
+        query = User.query.filter_by(role="caregiver", is_approved=True)
         if hospital_id:
             query = query.join(User.hospitals).filter(Hospital.id == hospital_id)
         caregivers = query.all()
@@ -145,6 +159,8 @@ def create_app():
         user = current_user()
         if not user or user.role != "seeker":
             return jsonify({"error": "Login as person in need"}), 401
+        if not user.is_approved:
+            return jsonify({"error": "Account pending admin approval."}), 403
         data = request.get_json(force=True)
         required = {"title", "description", "hospital_id"}
         if not required.issubset(data):
@@ -168,6 +184,8 @@ def create_app():
         user = current_user()
         if not user or user.role != "caregiver":
             return jsonify({"error": "Login as caregiver"}), 401
+        if not user.is_approved:
+            return jsonify({"error": "Account pending admin approval."}), 403
 
         care_request = CareRequest.query.get_or_404(request_id)
         if care_request.status != "open":
@@ -208,17 +226,48 @@ def create_app():
         if not caregiver or caregiver.role != "caregiver":
             return jsonify({"error": "Caregiver not found"}), 404
 
-        Acceptance.query.filter_by(caregiver_id=caregiver_id).delete()
-        caregiver.hospitals.clear()
-        db.session.delete(caregiver)
-        db.session.commit()
+        delete_user_and_related(caregiver)
         return jsonify({"ok": True})
+
+    @app.route("/api/admin/users/<int:user_id>", methods=["DELETE"])
+    def admin_delete_user(user_id: int):
+        user = current_user()
+        if not user or user.role != "admin":
+            return jsonify({"error": "Admin only"}), 403
+
+        target = User.query.get(user_id)
+        if not target:
+            return jsonify({"error": "User not found"}), 404
+        delete_user_and_related(target)
+        return jsonify({"ok": True})
+
+    @app.route("/api/admin/users/pending", methods=["GET"])
+    def admin_pending_users():
+        user = current_user()
+        if not user or user.role != "admin":
+            return jsonify({"error": "Admin only"}), 403
+        pending = User.query.filter_by(is_approved=False).all()
+        return jsonify([u.to_public_dict() for u in pending])
+
+    @app.route("/api/admin/users/<int:user_id>/approve", methods=["POST"])
+    def admin_approve_user(user_id: int):
+        user = current_user()
+        if not user or user.role != "admin":
+            return jsonify({"error": "Admin only"}), 403
+        target = User.query.get(user_id)
+        if not target:
+            return jsonify({"error": "User not found"}), 404
+        target.is_approved = True
+        db.session.commit()
+        return jsonify({"ok": True, "user": target.to_public_dict()})
 
     @app.route("/api/care-requests/<int:request_id>/reject", methods=["POST"])
     def reject_acceptance(request_id: int):
         user = current_user()
         if not user or user.role != "seeker":
             return jsonify({"error": "Login as person in need"}), 401
+        if not user.is_approved:
+            return jsonify({"error": "Account pending admin approval."}), 403
 
         care_request = CareRequest.query.get_or_404(request_id)
         if care_request.seeker_id != user.id:
@@ -248,6 +297,8 @@ def create_app():
         user = current_user()
         if not user or user.role != "seeker":
             return jsonify({"error": "Login as person in need"}), 401
+        if not user.is_approved:
+            return jsonify({"error": "Account pending admin approval."}), 403
 
         care_request = CareRequest.query.get_or_404(request_id)
         if care_request.seeker_id != user.id:
@@ -289,6 +340,21 @@ def create_app():
     return app
 
 
+def ensure_approval_column(engine):
+    """Ensure is_approved column exists for legacy databases without migrations."""
+    inspector = inspect(engine)
+    columns = {c["name"] for c in inspector.get_columns("users")}
+    if "is_approved" in columns:
+        return
+    dialect = engine.dialect.name
+    with engine.connect() as conn:
+        definition = "BOOLEAN NOT NULL DEFAULT 0"
+        if dialect == "postgresql":
+            definition = definition.replace("DEFAULT 0", "DEFAULT FALSE")
+        conn.execute(text(f"ALTER TABLE users ADD COLUMN is_approved {definition}"))
+        conn.commit()
+
+
 def current_user():
     if session.get("is_admin"):
         return AdminUser()
@@ -296,6 +362,21 @@ def current_user():
     if not user_id:
         return None
     return User.query.get(user_id)
+
+
+def delete_user_and_related(user: User):
+    """Delete a user and clean up dependent rows to avoid FK issues."""
+    if user.role == "caregiver":
+        Acceptance.query.filter_by(caregiver_id=user.id).delete()
+        user.hospitals.clear()
+    elif user.role == "seeker":
+        # Delete acceptances tied to this seeker's care requests, then the requests.
+        request_ids = [cr.id for cr in CareRequest.query.filter_by(seeker_id=user.id).all()]
+        if request_ids:
+            Acceptance.query.filter(Acceptance.request_id.in_(request_ids)).delete(synchronize_session=False)
+            CareRequest.query.filter(CareRequest.id.in_(request_ids)).delete(synchronize_session=False)
+    db.session.delete(user)
+    db.session.commit()
 
 
 def seed_hospitals():
