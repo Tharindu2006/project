@@ -47,7 +47,7 @@ def create_app():
 
     with app.app_context():
         db.create_all()
-        ensure_approval_column(db.engine)
+        ensure_schema_columns(db.engine)
         seed_hospitals()
 
     @app.route("/")
@@ -192,7 +192,7 @@ def create_app():
         if not user.is_approved:
             return jsonify({"error": "Account pending admin approval."}), 403
         data = request.get_json(force=True)
-        required = {"title", "description", "hospital_id"}
+        required = {"title", "description", "hospital_id", "phone"}
         if not required.issubset(data):
             return jsonify({"error": "Missing required fields"}), 400
         hospital = Hospital.query.get(data["hospital_id"])
@@ -204,6 +204,7 @@ def create_app():
             description=data["description"],
             hospital_id=hospital.id,
             seeker_id=user.id,
+            phone=data["phone"],
         )
         db.session.add(care_request)
         db.session.commit()
@@ -228,6 +229,8 @@ def create_app():
             care_request.title = data["title"]
         if "description" in data:
             care_request.description = data["description"]
+        if "phone" in data:
+            care_request.phone = data["phone"]
         if "hospital_id" in data:
             hospital = Hospital.query.get(data["hospital_id"])
             if not hospital:
@@ -432,8 +435,8 @@ def create_app():
     return app
 
 
-def ensure_approval_column(engine):
-    """Ensure approval-related columns exist for legacy databases without migrations."""
+def ensure_schema_columns(engine):
+    """Ensure approval and phone columns exist for legacy databases without migrations."""
 
     def add_boolean_column(table: str, column: str):
         inspector = inspect(engine)
@@ -448,8 +451,18 @@ def ensure_approval_column(engine):
             conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {definition}"))
             conn.commit()
 
+    def add_varchar_column(table: str, column: str, length: int = 100):
+        inspector = inspect(engine)
+        columns = {c["name"] for c in inspector.get_columns(table)}
+        if column in columns:
+            return
+        with engine.connect() as conn:
+            conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} VARCHAR({length})"))
+            conn.commit()
+
     add_boolean_column("users", "is_approved")
     add_boolean_column("care_requests", "is_approved")
+    add_varchar_column("care_requests", "phone", 50)
 
 
 def current_user():

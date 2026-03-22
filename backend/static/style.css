@@ -384,49 +384,48 @@ button:disabled {
     background: #aaa;
 }
 
-/* Caregiver list: show exactly two cards at a time with horizontal scroll for the rest */
+/* Caregiver list: two cards visible; controlled via nav buttons */
 #caregivers {
-    display: grid;
-    grid-auto-flow: column;
-    grid-template-columns: none; /* disable default auto-fit columns */
-    grid-auto-columns: calc(50% - 0.5rem); /* 2 visible cards including gap */
-    grid-template-rows: 1fr;
-    overflow-x: auto;
-    overflow-y: hidden;
-    max-height: none;
-    padding-bottom: 0.75rem;
-    scroll-snap-type: x proximity;
+    display: flex;
+    gap: 1rem;
+    overflow: hidden;
+}
+#caregivers .card {
+    flex: 0 0 calc(50% - 0.5rem);
 }
 
-/* Requests: show one card at a time with horizontal scroll */
+/* Requests: one card visible; controlled via nav buttons */
 #requests {
     display: flex;
     gap: 1rem;
-    overflow-x: auto;
-    overflow-y: hidden;
-    max-height: none;
-    padding-bottom: 0.75rem;
-    scroll-snap-type: x mandatory;
+    overflow: hidden;
 }
 #requests .card {
     flex: 0 0 100%;
-    scroll-snap-align: start;
 }
 
-.list-nav {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.5rem;
-    margin-bottom: 0.75rem;
+.list-wrapper {
+    position: relative;
 }
 
-.list-nav button {
-    margin-top: 0;
-    padding: 0.55rem 0.9rem;
-    font-size: 0.9rem;
-    background: #e2e8f0;
+.list-nav-side {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    background: rgba(255,255,255,0.9);
     color: #1a202c;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
 }
+.list-nav-side.prev { left: -0.75rem; }
+.list-nav-side.next { right: -0.75rem; }
 
 .card {
     background: #fff;
