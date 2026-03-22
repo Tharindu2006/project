@@ -89,7 +89,14 @@
               <option value="caregiver">Caregiver</option>
             </select>
           </label>
-          <label id="profilePhotoRow" style="display:none;">Profile photo URL (caregivers) <input id="profilePhoto" placeholder="https://.../photo.jpg"></label>
+          <label id="profilePhotoRow" style="display:none;">Profile photo (caregivers)
+            <input id="profilePhoto" placeholder="https://.../photo.jpg">
+            <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+              <input id="profilePhotoFile" type="file" accept="image/*" style="flex:1;" onchange="uploadProfileFile(event)">
+              <button type="button" onclick="uploadProfileFile(event)">Upload</button>
+            </div>
+            <small id="profilePhotoStatus" style="color:#4a5568;"></small>
+          </label>
           <label id="hospitalRow">Hospitals (for caregivers)</label>
           <select id="hospitalSelect" multiple style="height:80px;"></select>
         </div>
@@ -143,6 +150,31 @@
       document.getElementById('profilePhotoRow').style.display = role === 'caregiver' ? 'block' : 'none';
       document.getElementById('hospitalRow').style.display = role === 'caregiver' ? 'block' : 'none';
       document.getElementById('hospitalSelect').style.display = role === 'caregiver' ? 'block' : 'none';
+    }
+
+    async function uploadProfileFile(e) {
+      const input = document.getElementById('profilePhotoFile');
+      const status = document.getElementById('profilePhotoStatus');
+      if (!input.files || !input.files[0]) {
+        status.textContent = 'Choose an image to upload.';
+        status.style.color = '#c53030';
+        return;
+      }
+      const file = input.files[0];
+      status.textContent = 'Uploading...';
+      status.style.color = '#4a5568';
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch('/api/upload/profile-photo', { method: 'POST', body: form });
+      const data = await res.json();
+      if (!res.ok) {
+        status.textContent = data.error || 'Upload failed';
+        status.style.color = '#c53030';
+        return;
+      }
+      document.getElementById('profilePhoto').value = data.url;
+      status.textContent = 'Uploaded. Preview will show in caregiver list after approval.';
+      status.style.color = '#2f855a';
     }
 
     function closeLogin() {
@@ -390,9 +422,25 @@
           <div><strong>${c.name}</strong> <span class="pill">${c.role}</span></div>
           <div>${c.bio || ''}</div>
           <div>${(c.hospitals||[]).map(h=>`<span class="pill">${h.name}</span>`).join('')}</div>
-          <div>${c.phone||''}</div>
+          <div>
+            <span id="phone-${c.id}" class="masked-phone">${c.phone ? maskPhone(c.phone) : 'No phone provided'}</span>
+            ${c.phone ? `<button class="reveal-btn" onclick="revealPhone(${c.id}, '${c.phone || ''}')">Show</button>` : ''}
+          </div>
         </div>
       `).join('');
+    }
+
+    function maskPhone(phone) {
+      const digits = phone.trim();
+      if (digits.length <= 4) return '****';
+      const last4 = digits.slice(-4);
+      return `***-***-${last4}`;
+    }
+
+    function revealPhone(id, phone) {
+      const el = document.getElementById(`phone-${id}`);
+      if (!el) return;
+      el.textContent = phone;
     }
 
     initHospitals().then(()=>{ fetchMe().then(()=>{ loadRequests(); loadCaregivers(); }); });

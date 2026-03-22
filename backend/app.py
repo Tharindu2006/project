@@ -6,9 +6,12 @@ try:
 except Exception:
     pass
 
-from flask import Flask, jsonify, render_template, request, session
+import os
+
+from flask import Flask, jsonify, render_template, request, session, send_from_directory, url_for
 from flask_cors import CORS
 from sqlalchemy import inspect, text
+from werkzeug.utils import secure_filename
 
 from . import config
 from .models import Acceptance, CareRequest, Hospital, User, db
@@ -33,6 +36,11 @@ def create_app():
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = config.SESSION_COOKIE_SAMESITE
     app.config["SESSION_COOKIE_SECURE"] = config.SESSION_COOKIE_SECURE
+
+    upload_folder = os.path.join(config.BASE_DIR, "static", "uploads")
+    os.makedirs(upload_folder, exist_ok=True)
+    app.config["UPLOAD_FOLDER"] = upload_folder
+    app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024  # 5 MB limit
 
     db.init_app(app)
     CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
@@ -145,6 +153,21 @@ def create_app():
             query = query.join(User.hospitals).filter(Hospital.id == hospital_id)
         caregivers = query.all()
         return jsonify([c.to_public_dict() for c in caregivers])
+
+    @app.route("/api/upload/profile-photo", methods=["POST"])
+    def upload_profile_photo():
+        file = request.files.get("file")
+        if not file:
+            return jsonify({"error": "No file uploaded"}), 400
+        filename = secure_filename(file.filename or "")
+        if not filename:
+            return jsonify({"error": "Invalid filename"}), 400
+        if not filename.lower().endswith((".jpg", ".jpeg", ".png", ".gif", ".webp")):
+            return jsonify({"error": "Only image files are allowed"}), 400
+        save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        file.save(save_path)
+        file_url = url_for("static", filename=f"uploads/{filename}", _external=False)
+        return jsonify({"url": file_url})
 
     @app.route("/api/care-requests", methods=["GET"])
     def list_requests():
