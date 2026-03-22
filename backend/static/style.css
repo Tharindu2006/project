@@ -169,15 +169,14 @@ body {
 
 /* Hero Section */
 .hero {
-    height: 50vh;
-    min-height: 400px;
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
     color: white;
     padding-top: 80px; /* Offset for navbar */
-    margin-bottom: 2rem;
+    margin-bottom: 0;
 }
 
 .hero-content {
@@ -471,7 +470,7 @@ button:disabled {
 footer {
     background-color: #1a202c;
     color: #e2e8f0;
-    padding: 3rem 2rem;
+    padding: 1.5rem 2rem;
     text-align: center;
     margin-top: auto;
 }
