@@ -103,3 +103,27 @@ class Acceptance(db.Model):
     status = db.Column(db.String(20), default="accepted", nullable=False)
 
     caregiver = db.relationship("User", lazy="joined")
+
+
+class ContactMessage(db.Model):
+    __tablename__ = "contact_messages"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    email = db.Column(db.String(120), nullable=True)
+    phone = db.Column(db.String(50), nullable=True)
+    subject = db.Column(db.String(200), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User", lazy="joined")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "user": self.user.to_public_dict() if self.user else None,
+            "email": self.email,
+            "phone": self.phone,
+            "subject": self.subject,
+            "body": self.body,
+            "created_at": self.created_at.isoformat(),
+        }

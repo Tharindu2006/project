@@ -441,6 +441,42 @@ button:disabled {
 .list-nav-side.prev { left: -0.75rem; }
 .list-nav-side.next { right: -0.75rem; }
 
+.pill-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+.pill-list-scroll {
+    max-height: 140px;
+    overflow-y: auto;
+    padding: 0.25rem 0.35rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+}
+.check-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    background: #f1f5f9;
+    border-radius: 999px;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+.check-pill input {
+    margin: 0;
+}
+.link-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+}
+
 .card {
     background: #fff;
     border: 1px solid #eee;

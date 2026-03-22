@@ -21,7 +21,7 @@
         <div id="accountMenu" class="account-menu hidden">
           <h4 id="accountName">Your account</h4>
           <small id="accountEmail"></small>
-          <a href="#" onclick="openSettings(event)">Settings</a>
+          <a href="/settings">Settings</a>
           <button onclick="logout()">Logout</button>
         </div>
       </div>
@@ -108,7 +108,10 @@
             <small id="profilePhotoStatus" style="color:#4a5568;"></small>
           </label>
           <label id="hospitalRow">Hospitals (for caregivers)</label>
-          <select id="hospitalSelect" multiple style="height:80px;"></select>
+          <div id="hospitalCheckboxes" class="pill-list pill-list-scroll"></div>
+          <label id="otherHospitalRow" style="display:none;">Other hospital (if not listed)
+            <input id="otherHospital" placeholder="Type hospital name">
+          </label>
         </div>
         <div style="display:flex; gap:10px;">
             <button id="btnLogin" onclick="login()" style="flex:1;">Login</button>
@@ -166,7 +169,8 @@
       const role = document.getElementById('role').value;
       document.getElementById('profilePhotoRow').style.display = role === 'caregiver' ? 'block' : 'none';
       document.getElementById('hospitalRow').style.display = role === 'caregiver' ? 'block' : 'none';
-      document.getElementById('hospitalSelect').style.display = role === 'caregiver' ? 'block' : 'none';
+      document.getElementById('hospitalCheckboxes').style.display = role === 'caregiver' ? 'flex' : 'none';
+      document.getElementById('otherHospitalRow').style.display = role === 'caregiver' ? 'block' : 'none';
     }
 
     async function uploadProfileFile(e) {
@@ -261,7 +265,8 @@
         return;
       }
       const hospitals = await res.json();
-      for (const id of ['hospitalSelect','requestHospitalFilter','caregiverHospitalFilter','reqHospital']) {
+      // dropdowns for filters and request creation
+      for (const id of ['requestHospitalFilter','caregiverHospitalFilter','reqHospital']) {
         const el = document.getElementById(id);
         el.innerHTML = '<option value=\"\">All hospitals</option>';
         hospitals.forEach(h => {
@@ -272,12 +277,23 @@
       }
       // keep reqHospital single-select without "all"
       document.getElementById('reqHospital').remove(0);
+      // caregiver hospital checkboxes
+      const wrap = document.getElementById('hospitalCheckboxes');
+      wrap.innerHTML = '';
+      hospitals.forEach(h => {
+        const id = `hosp-${h.id}`;
+        const label = document.createElement('label');
+        label.className = 'check-pill';
+        label.innerHTML = `<input type="checkbox" value="${h.id}" id="${id}"> <span>${h.name}</span>`;
+        wrap.appendChild(label);
+      });
+      document.getElementById('hospitalRequestBtn').style.display = 'inline-block';
     }
 
     const val = (id) => document.getElementById(id).value.trim();
 
     async function register() {
-      const hospital_ids = Array.from(document.getElementById('hospitalSelect').selectedOptions).map(o=>Number(o.value));
+      const hospital_ids = Array.from(document.querySelectorAll('#hospitalCheckboxes input[type=\"checkbox\"]:checked')).map(c=>Number(c.value));
       const body = {
         email: val('email'),
         password: val('password'),
@@ -285,6 +301,7 @@
         role: document.getElementById('role').value,
         phone: val('phone'),
         profile_photo_url: val('profilePhoto'),
+        other_hospital: val('otherHospital'),
         hospital_ids,
       };
       const res = await api('/api/register',{method:'POST',body:JSON.stringify(body)});
@@ -507,6 +524,21 @@
       const el = document.getElementById(`phone-${id}`);
       if (!el) return;
       el.textContent = phone;
+    }
+
+    async function requestHospital() {
+      const name = prompt('Enter the hospital name to request adding:');
+      if (!name) return;
+      const res = await api('/api/help/contact',{method:'POST',body:JSON.stringify({
+        subject: 'Hospital not listed',
+        body: `Please add hospital: ${name}`
+      })});
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || 'Failed to submit request');
+        return;
+      }
+      alert('Thanks! Admin will review and add the hospital.');
     }
 
     initHospitals().then(()=>{ fetchMe().then(()=>{ loadRequests(); loadCaregivers(); }); });

@@ -8,13 +8,13 @@ except Exception:
 
 import os
 
-from flask import Flask, jsonify, render_template, request, session, send_from_directory, url_for
+from flask import Flask, jsonify, redirect, render_template, request, session, send_from_directory, url_for
 from flask_cors import CORS
 from sqlalchemy import inspect, or_, text
 from werkzeug.utils import secure_filename
 
 from . import config
-from .models import Acceptance, CareRequest, Hospital, User, db
+from .models import Acceptance, CareRequest, ContactMessage, Hospital, User, db
 
 
 class AdminUser:
@@ -54,6 +54,13 @@ def create_app():
     def home():
         return render_template("index.html")
 
+    @app.route("/settings")
+    def settings_page():
+        user = current_user()
+        if not user or isinstance(user, AdminUser):
+            return redirect("/")
+        return render_template("settings.html")
+
     @app.route("/api/register", methods=["POST"])
     def register():
         data = request.get_json(force=True)
@@ -87,6 +94,14 @@ def create_app():
             if not (data.get("phone") or "").strip():
                 return jsonify({"error": "Phone number is required for caregivers"}), 400
             hospital_ids = data.get("hospital_ids", [])
+            other_hospital = (data.get("other_hospital") or "").strip()
+            if other_hospital:
+                existing = Hospital.query.filter_by(name=other_hospital).first()
+                if not existing:
+                    existing = Hospital(name=other_hospital)
+                    db.session.add(existing)
+                    db.session.flush()
+                hospital_ids.append(existing.id)
             user.hospitals = Hospital.query.filter(Hospital.id.in_(hospital_ids)).all()
             if not user.hospitals:
                 return jsonify({"error": "At least one hospital must be provided"}), 400
@@ -425,6 +440,81 @@ def create_app():
             return jsonify({"user": None})
         return jsonify({"user": user.to_public_dict()})
 
+    @app.route("/api/me", methods=["PUT"])
+    def update_me():
+        user = current_user()
+        if not user or isinstance(user, AdminUser):
+            return jsonify({"error": "Login required"}), 401
+        data = request.get_json(force=True)
+        allowed = {"name", "phone", "email", "profile_photo_url", "bio", "hospital_ids"}
+        if not set(data).intersection(allowed):
+            return jsonify({"error": "No fields to update"}), 400
+        if "email" in data and data["email"] != user.email:
+            if User.query.filter_by(email=data["email"]).first():
+                return jsonify({"error": "Email already in use"}), 409
+            user.email = data["email"]
+        if "name" in data:
+            user.name = data["name"]
+        if "phone" in data:
+            user.phone = data["phone"]
+        if "profile_photo_url" in data:
+            user.profile_photo_url = data["profile_photo_url"]
+        if "bio" in data:
+            user.bio = data["bio"]
+        if user.role == "caregiver" and "hospital_ids" in data:
+            hospital_ids = data.get("hospital_ids", [])
+            other_hospital = (data.get("other_hospital") or "").strip()
+            if other_hospital:
+                existing = Hospital.query.filter_by(name=other_hospital).first()
+                if not existing:
+                    existing = Hospital(name=other_hospital)
+                    db.session.add(existing)
+                    db.session.flush()
+                hospital_ids.append(existing.id)
+            user.hospitals = Hospital.query.filter(Hospital.id.in_(hospital_ids)).all()
+        db.session.commit()
+        return jsonify({"user": user.to_public_dict()})
+
+    @app.route("/api/me/password", methods=["POST"])
+    def change_password():
+        user = current_user()
+        if not user or isinstance(user, AdminUser):
+            return jsonify({"error": "Login required"}), 401
+        data = request.get_json(force=True)
+        if not user.check_password(data.get("current_password", "")):
+            return jsonify({"error": "Current password incorrect"}), 400
+        new_pw = data.get("new_password", "")
+        if len(new_pw) < 6:
+            return jsonify({"error": "New password too short"}), 400
+        user.set_password(new_pw)
+        db.session.commit()
+        return jsonify({"ok": True})
+
+    @app.route("/api/help/contact", methods=["POST"])
+    def contact_admin():
+        user = current_user()
+        if not user or isinstance(user, AdminUser):
+            return jsonify({"error": "Login required"}), 401
+        data = request.get_json(force=True)
+        subject = (data.get("subject") or "").strip()
+        body = (data.get("body") or "").strip()
+        phone = (data.get("phone") or "").strip() or user.phone
+        email = (data.get("email") or "").strip() or user.email
+        if not subject or not body:
+            return jsonify({"error": "Subject and message required"}), 400
+        msg = ContactMessage(user_id=user.id, email=email, phone=phone, subject=subject, body=body)
+        db.session.add(msg)
+        db.session.commit()
+        return jsonify({"ok": True, "message": msg.to_dict()})
+
+    @app.route("/api/admin/messages", methods=["GET"])
+    def admin_messages():
+        user = current_user()
+        if not user or user.role != "admin":
+            return jsonify({"error": "Admin only"}), 403
+        msgs = ContactMessage.query.order_by(ContactMessage.created_at.desc()).all()
+        return jsonify([m.to_dict() for m in msgs])
+
     @app.route("/admin")
     def admin_portal():
         user = current_user()
@@ -436,7 +526,7 @@ def create_app():
 
 
 def ensure_schema_columns(engine):
-    """Ensure approval and phone columns exist for legacy databases without migrations."""
+    """Ensure approval, phone, and contact columns exist for legacy databases without migrations."""
 
     def add_boolean_column(table: str, column: str):
         inspector = inspect(engine)
@@ -463,6 +553,7 @@ def ensure_schema_columns(engine):
     add_boolean_column("users", "is_approved")
     add_boolean_column("care_requests", "is_approved")
     add_varchar_column("care_requests", "phone", 50)
+    add_varchar_column("contact_messages", "phone", 50)
 
 
 def current_user():

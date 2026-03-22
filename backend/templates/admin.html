@@ -55,6 +55,10 @@
       </form>
       <div id="hospitals" class="scrollable" style="margin-top:14px;"></div>
     </section>
+    <section>
+      <h2>Help Messages</h2>
+      <div id="messages" class="scrollable"></div>
+    </section>
   </div>
 
   <script>
@@ -160,6 +164,21 @@
       loadCaregivers();
     }
 
+    async function loadMessages() {
+      const res = await api('/api/admin/messages');
+      if(!res.ok) { messages.innerHTML = 'Failed to load messages.'; return; }
+      const items = await res.json();
+      messages.innerHTML = items.map(m => `
+        <div class="card">
+          <div><strong>${m.subject}</strong></div>
+          <div class="pill">${m.email || 'No email'}</div>
+          ${m.phone ? `<div class="pill">${m.phone}</div>` : ''}
+          <div style="margin:6px 0;">${m.body}</div>
+          <div class="muted" style="font-size:12px;">${m.user ? m.user.name : 'Guest'} • ${new Date(m.created_at).toLocaleString()}</div>
+        </div>
+      `).join('') || 'No messages yet';
+    }
+
     async function logout() {
       await api('/api/logout',{method:'POST'});
       location.href = '/';
@@ -169,6 +188,7 @@
     loadCaregivers();
     loadHospitals();
     loadPending();
+    loadMessages();
   </script>
 </body>
 </html>

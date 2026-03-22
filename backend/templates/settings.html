@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Account Settings</title>
+  <style>
+    body { font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin:0; background:#f6f8fb; color:#1a202c; }
+    header { background:#0f3f7a; color:white; padding:16px 24px; display:flex; align-items:center; justify-content:space-between; }
+    main { max-width: 1100px; margin:24px auto; padding:0 16px; display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:20px; align-items:start; }
+    section { background:white; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.06); padding:20px; }
+    h1 { margin:0; font-size:22px; }
+    h2 { margin:0 0 12px 0; font-size:18px; color:#0f3f7a; }
+    label { display:block; font-weight:600; margin:10px 0 4px; }
+    input, textarea, select { width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px; font-size:14px; box-sizing:border-box; }
+    textarea { min-height:80px; }
+    button { margin-top:12px; padding:10px 14px; border:none; border-radius:8px; background:#0f3f7a; color:white; font-weight:700; cursor:pointer; }
+    .muted { color:#4a5568; font-size:13px; margin-top:4px; }
+    .pill { display:inline-block; padding:4px 10px; background:#e8f1ff; color:#0f3f7a; border-radius:99px; font-size:12px; margin:4px 4px 0 0; }
+    .pill-list { display:flex; flex-wrap:wrap; gap:0.4rem; }
+    .check-pill { display:inline-flex; align-items:center; gap:0.35rem; padding:0.35rem 0.75rem; background:#f1f5f9; border-radius:999px; border:1px solid #e2e8f0; cursor:pointer; font-size:0.9rem; }
+    .check-pill input { margin:0; }
+    .link-btn { background:none; border:none; color:#0f3f7a; font-weight:600; cursor:pointer; padding:0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Account Settings</h1>
+    <div>
+      <button style="background:#edf2f7; color:#1a202c;" onclick="location.href='/'">Back</button>
+    </div>
+  </header>
+  <main>
+    <section>
+      <h2>My Account</h2>
+      <label>Name <input id="name"></label>
+      <label>Email <input id="email"></label>
+      <label>Phone <input id="phone"></label>
+      <label>Profile photo URL <input id="photo"></label>
+      <label>Hospitals (caregivers only)</label>
+      <div id="hospitals" class="pill-list pill-list-scroll"></div>
+      <label id="otherHospitalLabel">Other hospital (if not listed)
+        <input id="otherHospitalInput" placeholder="Type hospital name">
+      </label>
+      <button onclick="saveProfile()">Save</button>
+      <div id="profileStatus" class="muted"></div>
+    </section>
+    <section>
+      <h2>Security</h2>
+      <label>Current password <input id="currentPw" type="password"></label>
+      <label>New password <input id="newPw" type="password"></label>
+      <button onclick="changePassword()">Update Password</button>
+      <div id="pwStatus" class="muted"></div>
+    </section>
+    <section>
+      <h2>Help</h2>
+      <div style="margin-bottom:12px;">
+        <p class="muted">Frequently asked questions</p>
+        <div class="pill">How do I update my profile?</div>
+        <div class="pill">How long does approval take?</div>
+        <div class="pill">Who can see my phone?</div>
+      </div>
+      <label>Phone (optional) <input id="helpPhone" placeholder="+94 77 123 4567"></label>
+      <label>Email (optional) <input id="helpEmail" placeholder="you@example.com"></label>
+      <label>Subject <input id="helpSubject" placeholder="Issue summary"></label>
+      <label>Message <textarea id="helpBody" placeholder="Describe your question"></textarea></label>
+      <button onclick="contactAdmin()">Send to Admin</button>
+      <div id="helpStatus" class="muted"></div>
+    </section>
+  </main>
+
+  <script>
+    const api = (path, opts={}) =>
+      fetch(path, Object.assign({credentials:"include", headers:{"Content-Type":"application/json"}}, opts));
+
+    let currentUser = null;
+    let hospitals = [];
+
+    async function loadMe() {
+      const res = await api('/api/me');
+      const data = await res.json();
+      currentUser = data.user;
+      if (!currentUser) { window.location.href = '/'; return; }
+      name.value = currentUser.name || '';
+      email.value = currentUser.email || '';
+      phone.value = currentUser.phone || '';
+      photo.value = currentUser.profile_photo_url || '';
+      if (currentUser.role !== 'caregiver') {
+        document.getElementById('hospitals').style.display = 'none';
+        const otherLabel = document.getElementById('otherHospitalLabel');
+        if (otherLabel) otherLabel.style.display = 'none';
+      }
+    }
+
+    async function loadHospitals() {
+      const res = await api('/api/hospitals');
+      hospitals = await res.json();
+      const wrap = document.getElementById('hospitals');
+      wrap.innerHTML = '';
+      hospitals.forEach(h => {
+        const id = `settings-hosp-${h.id}`;
+        const label = document.createElement('label');
+        label.className = 'check-pill';
+        label.innerHTML = `<input type="checkbox" value="${h.id}" id="${id}"> <span>${h.name}</span>`;
+        wrap.appendChild(label);
+      });
+      if (currentUser && currentUser.hospitals) {
+        const ids = new Set(currentUser.hospitals.map(h=>h.id));
+        wrap.querySelectorAll('input[type=\"checkbox\"]').forEach(cb => {
+          cb.checked = ids.has(Number(cb.value));
+        });
+      }
+    }
+
+    async function saveProfile() {
+      const body = {
+        name: name.value,
+        email: email.value,
+        phone: phone.value,
+        profile_photo_url: photo.value,
+      };
+      if (currentUser.role === 'caregiver') {
+        body.hospital_ids = Array.from(document.querySelectorAll('#hospitals input[type=\"checkbox\"]:checked')).map(o=>Number(o.value));
+        body.other_hospital = otherHospitalInput.value.trim();
+      }
+      const res = await api('/api/me',{method:'PUT',body:JSON.stringify(body)});
+      const data = await res.json();
+      profileStatus.textContent = res.ok ? 'Saved.' : (data.error || 'Failed');
+      if (res.ok) currentUser = data.user;
+    }
+
+    const hospitalsSelect = () => document.getElementById('hospitals');
+
+    async function changePassword() {
+      const body = { current_password: currentPw.value, new_password: newPw.value };
+      const res = await api('/api/me/password',{method:'POST',body:JSON.stringify(body)});
+      const data = await res.json();
+      pwStatus.textContent = res.ok ? 'Password updated' : (data.error || 'Failed');
+      if (res.ok) { currentPw.value=''; newPw.value=''; }
+    }
+
+    async function contactAdmin() {
+      const body = { subject: helpSubject.value, body: helpBody.value, phone: helpPhone.value, email: helpEmail.value };
+      const res = await api('/api/help/contact',{method:'POST',body:JSON.stringify(body)});
+      const data = await res.json();
+      helpStatus.textContent = res.ok ? 'Sent to admin' : (data.error || 'Failed');
+      if (res.ok) { helpSubject.value=''; helpBody.value=''; helpPhone.value=''; helpEmail.value=''; }
+    }
+
+    async function requestHospital() {
+      const name = prompt('Enter the hospital name to request adding:');
+      if (!name) return;
+      const res = await api('/api/help/contact',{method:'POST',body:JSON.stringify({
+        subject: 'Hospital not listed (settings)',
+        body: `Please add hospital: ${name}`
+      })});
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || 'Failed to submit request');
+        return;
+      }
+      alert('Thanks! Admin will review and add the hospital.');
+    }
+
+    loadMe().then(loadHospitals);
+  </script>
+</body>
+</html>
