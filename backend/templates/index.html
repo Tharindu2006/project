@@ -42,7 +42,12 @@
     /* Layout */
     .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
     #app { display: flex; flex-direction: column; gap: 40px; }
-    .grid-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; }
+    /* Lay out requests and caregivers side by side at 50/50; create-request spans full width */
+    .grid-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px; }
+    #create-request-section { grid-column: 1 / -1; }
+    @media (max-width: 900px) {
+      .grid-row { grid-template-columns: 1fr; }
+    }
 
     /* Sections */
     section { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
@@ -77,6 +82,7 @@
       <div class="nav-links">
         <a href="#requests-section" class="hidden">Requests</a>
         <a href="#caregivers-section" class="hidden">Caregivers</a>
+        <a href="#create-request-section" class="hidden">Create Request</a>
         <a id="adminPortalLink" href="/admin" class="hidden">Admin Portal</a>
       </div>
       <div class="login-area">
@@ -110,13 +116,6 @@
         <label>Filter by hospital</label>
         <select id="requestHospitalFilter" onchange="loadRequests()"></select>
         <div class="list" id="requests"></div>
-        <div id="requestForm" style="display:none; margin-top:20px; border-top:2px dashed #e2e8f0; padding-top:20px;">
-          <h3 style="margin-top:0">Create Request</h3>
-          <label>Title <input id="reqTitle"></label>
-          <label>Description <textarea id="reqDesc"></textarea></label>
-          <label>Hospital <select id="reqHospital"></select></label>
-          <button onclick="createRequest()">Post</button>
-        </div>
       </section>
 
       <section id="caregivers-section" class="hidden">
@@ -124,6 +123,21 @@
         <label>Filter by hospital</label>
         <select id="caregiverHospitalFilter" onchange="loadCaregivers()"></select>
         <div class="list" id="caregivers"></div>
+      </section>
+
+      <section id="create-request-section" class="hidden">
+        <h2>Create Request</h2>
+        <p style="margin-top:0;color:#4a5568;">Share what support you need and choose the hospital you prefer.</p>
+        <div id="createRequestContent">
+          <label>Title <input id="reqTitle"></label>
+          <label>Description <textarea id="reqDesc"></textarea></label>
+          <label>Hospital <select id="reqHospital"></select></label>
+          <button onclick="createRequest()">Post</button>
+        </div>
+        <div id="createRequestLocked" class="card" style="display:none; background:#fff5f5; border-color:#fed7d7;">
+          <strong>Login as a seeker</strong>
+          <p style="margin:8px 0 0 0; color:#c53030;">Only people asking for care can create requests.</p>
+        </div>
       </section>
     </div>
   </div>
@@ -158,6 +172,11 @@
       </div>
     </div>
   </div>
+
+  <footer>
+    <p>&copy; 2024 Care Connect. All rights reserved.</p>
+    <p>Connecting Compassion with Care.</p>
+  </footer>
 
   <script>
     let currentUser = null;
@@ -201,7 +220,7 @@
 
     function setAuthenticatedUI(user) {
       const isAuthed = !!user;
-      document.querySelectorAll('#requests-section, #caregivers-section').forEach(el => el.classList.toggle('hidden', !isAuthed));
+      document.querySelectorAll('#requests-section, #caregivers-section, #create-request-section').forEach(el => el.classList.toggle('hidden', !isAuthed));
       document.querySelectorAll('.nav-links a').forEach(link => {
         if (link.id === 'adminPortalLink') {
           link.classList.toggle('hidden', !(user && user.role === 'admin'));
@@ -278,7 +297,7 @@
       const res = await api('/api/register',{method:'POST',body:JSON.stringify(body)});
       const data = await res.json();
       if (res.ok) {
-        alert(data.message || 'Registration successful. Please verify your email to continue.');
+        alert(data.message || 'Registration successful.');
         closeLogin();
         currentUser = null;
         me.textContent = 'Not logged in';
@@ -339,7 +358,9 @@
     }
 
     function toggleForms(user) {
-      document.getElementById('requestForm').style.display = user && user.role==='seeker' ? 'block':'none';
+      const isSeeker = user && user.role === 'seeker';
+      document.getElementById('createRequestContent').style.display = isSeeker ? 'block' : 'none';
+      document.getElementById('createRequestLocked').style.display = isSeeker ? 'none' : 'block';
       document.getElementById('logoutBtn').disabled = !user;
     }
 
