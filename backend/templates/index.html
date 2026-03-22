@@ -277,22 +277,34 @@
       };
       const res = await api('/api/register',{method:'POST',body:JSON.stringify(body)});
       const data = await res.json();
-      currentUser = res.ok ? data.user : null;
-      me.textContent = res.ok ? `Logged in as ${data.user.name} (${data.user.role})` : data.error;
-      if (res.ok && data.user.role === 'admin') { window.location.href = '/admin'; return; }
-      if (res.ok) closeLogin();
-      setAuthenticatedUI(currentUser);
-      toggleForms(currentUser);
-      loadRequests(); loadCaregivers();
+      if (res.ok) {
+        alert(data.message || 'Registration successful. Please verify your email to continue.');
+        closeLogin();
+        currentUser = null;
+        me.textContent = 'Not logged in';
+        setAuthenticatedUI(null);
+        toggleForms(null);
+      } else {
+        alert(data.error || 'Registration failed');
+        me.textContent = data.error || 'Not logged in';
+      }
     }
 
     async function login() {
       const res = await api('/api/login',{method:'POST',body:JSON.stringify({email:val('email'),password:val('password')})});
       const data = await res.json();
-      currentUser = res.ok ? data.user : null;
-      me.textContent = res.ok ? `Logged in as ${data.user.name} (${data.user.role})` : data.error;
-      if (res.ok && data.user.role === 'admin') { window.location.href = '/admin'; return; }
-      if (res.ok) closeLogin();
+      if (!res.ok) {
+        alert(data.error || 'Login failed');
+        currentUser = null;
+        me.textContent = data.error || 'Not logged in';
+        setAuthenticatedUI(null);
+        toggleForms(null);
+        return;
+      }
+      currentUser = data.user;
+      me.textContent = `Logged in as ${data.user.name} (${data.user.role})`;
+      if (data.user.role === 'admin') { window.location.href = '/admin'; return; }
+      closeLogin();
       setAuthenticatedUI(currentUser);
       toggleForms(currentUser);
       loadRequests(); loadCaregivers();

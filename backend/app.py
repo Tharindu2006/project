@@ -1,3 +1,11 @@
+try:
+    # Load variables from a local .env file for dev without affecting prod containers.
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except Exception:
+    pass
+
 from flask import Flask, jsonify, render_template, request, session
 from flask_cors import CORS
 
@@ -66,9 +74,7 @@ def create_app():
 
         db.session.add(user)
         db.session.commit()
-
-        session["user_id"] = user.id
-        return jsonify({"user": user.to_public_dict()}), 201
+        return jsonify({"message": "Registration successful.", "user": user.to_public_dict()}), 201
 
     @app.route("/api/login", methods=["POST"])
     def login():
@@ -83,6 +89,7 @@ def create_app():
         user = User.query.filter_by(email=data.get("email")).first()
         if not user or not user.check_password(data.get("password", "")):
             return jsonify({"error": "Invalid credentials"}), 401
+
         session["is_admin"] = False
         session["user_id"] = user.id
         return jsonify({"user": user.to_public_dict()})
@@ -311,3 +318,5 @@ def seed_hospitals():
 if __name__ == "__main__":
     app = create_app()
     app.run(debug=True)
+
+

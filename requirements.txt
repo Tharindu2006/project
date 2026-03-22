@@ -5,3 +5,4 @@ werkzeug==3.0.1
 numpy
 gunicorn
 itsdangerous
+python-dotenv>=1.0.0
