@@ -273,6 +273,53 @@ body:not(.logged-out) .hero {
     }
 }
 
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        padding: 1rem;
+        gap: 1rem;
+        position: relative;
+    }
+
+    .hero {
+        padding-top: 2rem;
+    }
+
+    .nav-links {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .login-area {
+        margin-left: 0;
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Show 1 caregiver card per view on mobile */
+    #caregivers .card {
+        flex: 0 0 100%;
+    }
+
+    .container {
+        padding: 0 1rem 3rem 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-content h2 {
+        font-size: 2rem;
+    }
+
+    .hero-btn {
+        display: block;
+        width: 100%;
+        margin: 0.5rem 0;
+        box-sizing: border-box;
+    }
+}
+
 #create-request-section {
     grid-column: 1 / -1;
     background-color: #f0f7ff;
@@ -600,9 +647,11 @@ button:disabled {
 footer {
     background-color: #1a202c;
     color: #e2e8f0;
-    padding: 2.5rem 2rem;
+    padding: 1.5rem 2rem 2.75rem;
     text-align: center;
     margin-top: auto;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 footer p {
